@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -11,32 +11,89 @@ import iconSwiper1 from "../assets/images/icon-swiper-1.svg";
 import iconSwiper2 from "../assets/images/icon-swiper-2.svg";
 
 export default function Main() {
+  const [click, setClick] = useState(0);
+  const imagesBoxRef = useRef(null);
+  const outerWidthRef = useRef(0);
+  const autoSlideRef = useRef(null);
+
+  const eventBanners = [
+    eventBanner1,
+    eventBanner2,
+    eventBanner3,
+    eventBanner4,
+    eventBanner5,
+  ];
+
+  useEffect(() => {
+    outerWidthRef.current = imagesBoxRef.current.offsetWidth;
+    window.addEventListener("resize", () => {
+      outerWidthRef.current = imagesBoxRef.current.offsetWidth;
+    });
+
+    autoSlideRef.current = setInterval(() => moveToNextImage(), 3000);
+
+    return () => {
+      clearInterval(autoSlideRef.current);
+    };
+  }, []);
+
+  const moveToNextImage = () => {
+    setClick((prevClick) => (prevClick + 1) % eventBanners.length);
+  };
+
+  const moveToPreviousImage = () => {
+    setClick((prevClick) =>
+      prevClick > 0 ? prevClick - 1 : eventBanners.length - 1
+    );
+  };
+
+  const handleDotClick = (index) => {
+    setClick(index);
+  };
+
+  useEffect(() => {
+    if (imagesBoxRef.current) {
+      imagesBoxRef.current.style.transform = `translateX(-${
+        click * outerWidthRef.current
+      }px)`;
+    }
+  }, [click]);
+
   return (
     <>
       <Header />
       <main>
         <ImageSliderStyle>
-          <div className="images-box">
-            <img src={eventBanner1} alt="이벤트배너" />
-            <img src={eventBanner2} alt="이벤트배너" />
-            <img src={eventBanner3} alt="이벤트배너" />
-            <img src={eventBanner4} alt="이벤트배너" />
-            <img src={eventBanner5} alt="이벤트배너" />
+          <div className="images-box" ref={imagesBoxRef}>
+            {eventBanners.map((banner, index) => (
+              <img key={index} src={banner} alt="이벤트배너" />
+            ))}
           </div>
           <BtnImagesSliderStyle>
-            <button className="btn-left-swiper" type="button">
+            <button
+              onClick={moveToPreviousImage}
+              className="btn-left-swiper"
+              type="button"
+            >
               <img src={iconSwiper1} alt="이미지슬라이더좌측버튼" />
             </button>
-            <button className="btn-right-swiper" type="button">
+            <button
+              onClick={moveToNextImage}
+              className="btn-right-swiper"
+              type="button"
+            >
               <img src={iconSwiper2} alt="이미지슬라이더우측버튼" />
             </button>
           </BtnImagesSliderStyle>
           <BtnDotsStyle>
-            <button className="dot dot-active" type="button"></button>
-            <button className="dot" type="button"></button>
-            <button className="dot" type="button"></button>
-            <button className="dot" type="button"></button>
-            <button className="dot" type="button"></button>
+            {eventBanners.map((_, index) => (
+              <button
+                key={index}
+                className={`dot ${index === click ? "dot-active" : ""}`}
+                type="button"
+                onClick={() => handleDotClick(index)}
+              ></button>
+            ))}
           </BtnDotsStyle>
         </ImageSliderStyle>
         <ProductsContainerStyle></ProductsContainerStyle>
