@@ -28,7 +28,19 @@ const GlobalStyles = createGlobalStyle`
         background: transparent;
         margin: 0;
         padding: 0;
+        outline: none;
     }
+
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        background: var(--color-bg);
+    }
+
 
     :root {
         --color-white: #ffffff;
@@ -37,10 +49,13 @@ const GlobalStyles = createGlobalStyle`
         --color-red: #EB5757;
         --color-maroon: #A25956;
         --color-lightgrey: #f2f2f2;
+        --color-partgrey: #e6e3dc;
         --color-grey: #c4c4c4;
         --color-darkgrey: #767676;
         --color-black: #000000;
     }
+
+    
 `;
 
 export default GlobalStyles;
