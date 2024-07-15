@@ -1,14 +1,12 @@
-import React from "react";
-import SignUp from "./pages/SignUp";
+
 import GlobalStyles from "./style/GlobalStyles";
-import LoginBox from "./components/LoginBox";
 
 function App() {
-	return (
-		<>
-			<GlobalStyles />
-			<SignUp></SignUp>
-		</>
-	);
+  return (
+    <>
+      <GlobalStyles />
+    </>
+  );
+main
 }
 export default App;
