@@ -1,3 +1,4 @@
+
 import GlobalStyles from "./style/GlobalStyles";
 
 function App() {
@@ -6,5 +7,6 @@ function App() {
       <GlobalStyles />
     </>
   );
+main
 }
 export default App;
