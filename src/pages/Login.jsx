@@ -1,13 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 import LogoYoungs from "../assets/images/Logo-youngs.svg";
-import LoginBox from "../components/LoginBox";
+import AccountBox from "../components/AccountBox";
 
 export default function SignUp() {
 	return (
 		<BackGround>
 			<img src={LogoYoungs} alt="" />
-			<LoginBox></LoginBox>
+			<AccountBox></AccountBox>
 			<AccountLinks>
 				<a href="">회원가입</a>
 				<a href="">비밀번호 찾기</a>
