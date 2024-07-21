@@ -3,7 +3,7 @@ import styled from "styled-components";
 import LogoYoungs from "../assets/images/Logo-youngs.svg";
 import AccountBox from "../components/AccountBox";
 
-export default function SignUp() {
+export default function Login() {
 	return (
 		<BackGround>
 			<img src={LogoYoungs} alt="" />
