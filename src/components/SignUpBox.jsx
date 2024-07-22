@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 
-const LoginPage = () => {
+const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
 
 	const handleTabClick = (index) => {
@@ -12,31 +12,48 @@ const LoginPage = () => {
 		<>
 			<TabContainer>
 				<Tab active={activeTab === 0} onClick={() => handleTabClick(0)}>
-					구매회원 로그인
+					구매회원가입
 				</Tab>
 				<Tab active={activeTab === 1} onClick={() => handleTabClick(1)}>
-					판매회원 로그인
+					판매회원가입
 				</Tab>
 			</TabContainer>
-			<LoginContainer>
+			<SignUpContainer>
 				<FormContainer>
 					{activeTab === 0 ? (
 						<Form action="/login" method="post">
+							<p>아이디</p>
 							<Input
 								type="email"
 								id="buyer-email"
 								name="buyer-email"
-								placeholder="아이디"
+								placeholder=""
 								required
 							/>
+							<p>비밀번호</p>
 							<Input
 								type="password"
 								id="buyer-password"
 								name="buyer-password"
-								placeholder="비밀번호"
+								placeholder=""
 								required
 							/>
-							<Button type="submit">로그인</Button>
+							<p>비밀번호 재확인</p>
+							<Input
+								type="password"
+								id="buyer-password"
+								name="buyer-password"
+								placeholder=""
+								required
+							/>
+							<p>이름</p>
+							<Input
+								type="text"
+								id="buyer-name"
+								name="buyer-name"
+								placeholder=""
+								required
+							/>
 						</Form>
 					) : (
 						<Form action="/login" method="post">
@@ -54,19 +71,18 @@ const LoginPage = () => {
 								placeholder="비밀번호"
 								required
 							/>
-							<Button type="submit">로그인</Button>
 						</Form>
 					)}
 				</FormContainer>
-			</LoginContainer>
+			</SignUpContainer>
 		</>
 	);
 };
 
-const LoginContainer = styled.div`
+const SignUpContainer = styled.div`
 	margin: 0 auto;
 	/* margin-top: -7px; */
-	padding-top: 44px;
+	padding-top: 40px;
 	background-color: white;
 	display: flex;
 	flex-direction: column;
@@ -94,7 +110,7 @@ const Tab = styled.div`
 	border-bottom: ${(props) => (props.active ? "null" : "1px solid #EC7E62")};
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
-	padding: 20px 70px 38px 70px;
+	padding: 20px 82px 38px 82px;
 	height: 60px;
 	font-size: 18px;
 	font-weight: 600;
@@ -114,13 +130,23 @@ const FormContainer = styled.div`
 const Form = styled.form`
 	display: flex;
 	flex-direction: column;
+
+	p {
+		margin-bottom: 10px;
+		font-size: 16px;
+		color: var(--color-darkgrey);
+	}
+	p:nth-child(7) {
+		margin-top: 38px;
+	}
 `;
 
 const Input = styled.input`
 	width: 480px;
-	height: 60px;
-	border-bottom: solid 1px var(--color-orange);
-	margin-bottom: 6px;
+	height: 54px;
+	border: solid 1px var(--color-orange);
+	border-radius: 5px;
+	margin-bottom: 12px;
 `;
 
 const Button = styled.button`
@@ -135,4 +161,4 @@ const Button = styled.button`
 	font-weight: 700;
 `;
 
-export default LoginPage;
+export default SignUpBox;
