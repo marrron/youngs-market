@@ -1,13 +1,15 @@
 import React from "react";
-import SignUp from "./pages/SignUp";
+import Login from "./pages/Login";
 import GlobalStyles from "./style/GlobalStyles";
+import { AuthProvider } from "./context/AuthContext";
+import ProductList from "./pages/ProductLists";
 
 function App() {
 	return (
-		<>
+		<AuthProvider>
 			<GlobalStyles />
-			<SignUp></SignUp>
-		</>
+			<Login></Login>
+		</AuthProvider>
 	);
 }
 export default App;

@@ -1,11 +1,42 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const LoginBox = () => {
+	const { setToken } = useAuth(); // Context에서 setToken 가져오기
 	const [activeTab, setActiveTab] = useState(0);
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
+	const [loginType, setLoginType] = useState("BUYER");
+	const [errorMessage, setErrorMessage] = useState("");
 
 	const handleTabClick = (index) => {
 		setActiveTab(index);
+		setLoginType(index === 0 ? "BUYER" : "SELLER");
+	};
+
+	const handleSubmit = (event) => {
+		event.preventDefault(); // 폼 제출 방지
+
+		const AuthData = {
+			username,
+			password,
+			login_type: loginType,
+		};
+
+		axios
+			.post("https://openmarket.weniv.co.kr/accounts/login/", AuthData) // 로그인 API 호출
+			.then((response) => {
+				console.log("로그인 성공:", response.data); // 성공 시 응답 데이터 출력
+				localStorage.setItem("token", response.data.token);
+				setToken(response.data.token);
+			})
+			.catch((error) => {
+				if (error.response) {
+					setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
+				}
+			});
 	};
 
 	return (
@@ -21,39 +52,45 @@ const LoginBox = () => {
 			<LoginContainer>
 				<FormContainer>
 					{activeTab === 0 ? (
-						<Form action="/login" method="post">
+						<Form onSubmit={handleSubmit}>
 							<Input
-								type="email"
-								id="buyer-email"
-								name="buyer-email"
+								type="text"
 								placeholder="아이디"
+								value={username}
+								onChange={(e) => setUsername(e.target.value)}
 								required
 							/>
 							<Input
 								type="password"
-								id="buyer-password"
-								name="buyer-password"
 								placeholder="비밀번호"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
 								required
 							/>
+							<ErrorMessage marginTop={errorMessage ? "26px" : ""}>
+								{errorMessage}
+							</ErrorMessage>
 							<Button type="submit">로그인</Button>
 						</Form>
 					) : (
-						<Form action="/login" method="post">
+						<Form onSubmit={handleSubmit}>
 							<Input
-								type="email"
-								id="seller-email"
-								name="seller-email"
+								type="text"
 								placeholder="아이디"
+								value={username}
+								onChange={(e) => setUsername(e.target.value)}
 								required
 							/>
 							<Input
 								type="password"
-								id="seller-password"
-								name="seller-password"
 								placeholder="비밀번호"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
 								required
 							/>
+							<ErrorMessage marginTop={errorMessage ? "26px" : ""}>
+								{errorMessage}
+							</ErrorMessage>
 							<Button type="submit">로그인</Button>
 						</Form>
 					)}
@@ -133,6 +170,12 @@ const Button = styled.button`
 	margin-top: 30px;
 	margin-bottom: 36px;
 	font-weight: 700;
+`;
+
+const ErrorMessage = styled.p`
+	font-size: 16px;
+	margin-top: ${(props) => props.marginTop};
+	color: red;
 `;
 
 export default LoginBox;
