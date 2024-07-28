@@ -1,13 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 import LogoYoungs from "../assets/images/Logo-youngs.svg";
-import LoginBox from "../components/LoginBox";
+import SignUpBox from "../components/SignUpBox";
 
 export default function SignUp() {
 	return (
 		<BackGround>
 			<img src={LogoYoungs} alt="" />
-			<LoginBox></LoginBox>
+			<SignUpBox></SignUpBox>
 		</BackGround>
 	);
 }
