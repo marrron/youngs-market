@@ -1,4 +1,6 @@
 import React from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import logo from "../assets/images/Logo-youngs.svg";
 import iconSearch from "../assets/images/icon-search.svg";
@@ -6,10 +8,29 @@ import iconShoppingCart from "../assets/images/icon-shopping-cart.svg";
 import iconUser from "../assets/images/icon-user.svg";
 
 export default function Header() {
+  const { token } = useAuth();
+  const navigate = useNavigate();
+
+  const handleUserButtonClick = () => {
+    if (token) {
+      navigate("/mypage");
+    } else {
+      navigate("/login");
+    }
+  };
+
+  const handleLogoButtonClick = () => {
+    navigate("/");
+  };
+
   return (
     <HeaderStyle>
       <SearchContainerStyle>
-        <button className="main-logo" type="button">
+        <button
+          className="main-logo"
+          type="button"
+          onClick={handleLogoButtonClick}
+        >
           <img src={logo} alt="로고" />
         </button>
         <input
@@ -26,9 +47,14 @@ export default function Header() {
           <img src={iconShoppingCart} alt="장바구니" />
           <p>장바구니</p>
         </button>
-        <button className="btn-user" type="button">
+
+        <button
+          className="btn-user"
+          type="button"
+          onClick={handleUserButtonClick}
+        >
           <img src={iconUser} alt="로그인" />
-          <p>로그인</p>
+          {token ? <p>마이페이지</p> : <p>로그인</p>}
         </button>
       </UserControlsStyle>
     </HeaderStyle>

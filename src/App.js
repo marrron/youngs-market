@@ -1,15 +1,17 @@
 import React from "react";
-import Login from "./pages/Login";
+import Router from "./routes/Router";
 import GlobalStyles from "./style/GlobalStyles";
 import { AuthProvider } from "./context/AuthContext";
-import ProductList from "./pages/ProductLists";
+import { ProductProvider } from "./context/ProductContext";
 
 function App() {
-	return (
-		<AuthProvider>
-			<GlobalStyles />
-			<Login></Login>
-		</AuthProvider>
-	);
+  return (
+    <AuthProvider>
+      <ProductProvider>
+        <GlobalStyles />
+        <Router />
+      </ProductProvider>
+    </AuthProvider>
+  );
 }
 export default App;
