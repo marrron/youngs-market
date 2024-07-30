@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -18,6 +19,7 @@ export default function Main() {
   const outerWidthRef = useRef(0);
   const autoSlideRef = useRef(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate();
 
   const eventBanners = [
     eventBanner1,
@@ -85,6 +87,7 @@ export default function Main() {
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
+    navigate(`/productdetail/${product.product_id}`);
   };
 
   useEffect(() => {
@@ -140,8 +143,18 @@ export default function Main() {
               >
                 <img src={product.image} alt="상품이미지" />
               </button>
-              <p className="store-name">{product.store_name}</p>
-              <strong className="product-name">{product.product_name}</strong>
+              <p
+                className="store-name"
+                onClick={() => handleProductClick(product)}
+              >
+                {product.store_name}
+              </p>
+              <strong
+                className="product-name"
+                onClick={() => handleProductClick(product)}
+              >
+                {product.product_name}
+              </strong>
               {product.stock === 0 && (
                 <img
                   src={iconSoldout}
