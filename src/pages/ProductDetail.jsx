@@ -1,34 +1,66 @@
-import React from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import React, { useState } from "react";
+import { useProduct } from "../context/ProductContext";
 import styled from "styled-components";
 import minusBtn from "../assets/images/icon-minus-line.svg";
 import plusBtn from "../assets/images/icon-plus-line.svg";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 export default function ProductDetail() {
+  const { selectedProduct } = useProduct();
+  console.log(selectedProduct);
+  const [quantity, setQuantity] = useState(1);
+
+  const increaseQuantity = () => {
+    setQuantity((prevQuantity) =>
+      selectedProduct.stock > prevQuantity ? prevQuantity + 1 : prevQuantity
+    );
+  };
+
+  const decreaseQuantity = () => {
+    setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 1));
+  };
+
+  const formattedPrice = (price) => {
+    return price.toLocaleString();
+  };
+
+  const totalPrice = selectedProduct.price * quantity;
+  const formattedTotalPrice = totalPrice.toLocaleString();
+
   return (
     <>
       <Header />
       <MainStyle>
         <div className="product-image">
-          <img src="" alt="상품이미지" />
+          <img src={selectedProduct.image} alt="상품이미지" />
         </div>
         <ProductInfoStyle>
-          <p className="store-name">백엔드글로벌</p>
-          <p className="product-name">딥러닝 개발자 무릎 담요</p>
-          <strong className="product-price">17,500</strong>
+          <p className="store-name">{selectedProduct.store_name}</p>
+          <p className="product-name">{selectedProduct.product_name}</p>
+          <strong className="product-price">
+            {formattedPrice(selectedProduct.price)}
+          </strong>
           <span className="currency-unit">원</span>
           <p className="delivery">
             택배배송<span>/</span>무료배송
           </p>
           <QuantityControlStyle>
-            <button className="decrease-btn" type="button">
+            <button
+              className="decrease-btn"
+              type="button"
+              onClick={decreaseQuantity}
+            >
               <img src={minusBtn} alt="수량감소버튼" />
             </button>
             <button className="product-quantity" type="button">
-              1
+              {selectedProduct.stock > 0 ? quantity : 0}
             </button>
-            <button className="increase-btn" type="button">
+            <button
+              className="increase-btn"
+              type="button"
+              onClick={increaseQuantity}
+            >
               <img src={plusBtn} alt="수량추가버튼" />
             </button>
           </QuantityControlStyle>
@@ -36,22 +68,38 @@ export default function ProductDetail() {
             <span className="total-price-txt">총 상품 금액</span>
             <div className="total-quantity">
               <p>
-                총 수량 <span>1</span>개
+                총 수량 <span>{selectedProduct.stock > 0 ? quantity : 0}</span>
+                개
               </p>
               <span className="bar">|</span>
               <div>
-                <strong>17,500</strong>
+                <strong>
+                  {selectedProduct.stock > 0 ? formattedTotalPrice : 0}
+                </strong>
                 <span className="currency-unit maroon">원</span>
               </div>
             </div>
           </TotalPriceStyle>
           <PurchaseActionStyle>
-            <button className="purchase-btn" type="button">
-              바로구매
-            </button>
-            <button className="shopping-cart-btn" type="button">
-              장바구니
-            </button>
+            {selectedProduct.stock > 0 ? (
+              <>
+                <button className="purchase-btn" type="button">
+                  바로구매
+                </button>
+                <button className="shopping-cart-btn" type="button">
+                  장바구니
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="soldout-btn left" type="button">
+                  SOLD OUT
+                </button>
+                <button className="soldout-btn right" type="button">
+                  SOLD OUT
+                </button>
+              </>
+            )}
           </PurchaseActionStyle>
         </ProductInfoStyle>
         <InfoActionStyle>
@@ -222,24 +270,36 @@ const PurchaseActionStyle = styled.div`
   display: flex;
   gap: 14px;
 
+  button {
+    height: 60px;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 18px;
+  }
+
   .purchase-btn {
     width: 416px;
-    height: 60px;
     background-color: var(--color-maroon);
-    font-size: 18px;
-    border-radius: 5px;
     color: var(--color-bg);
-    font-weight: bold;
   }
 
   .shopping-cart-btn {
     width: 200px;
-    height: 60px;
     background-color: #767676;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 5px;
     color: var(--color-bg);
+  }
+
+  .soldout-btn {
+    background-color: var(--color-black);
+    color: var(--color-white);
+  }
+
+  .left {
+    width: 416px;
+  }
+
+  .right {
+    width: 200px;
   }
 `;
 
