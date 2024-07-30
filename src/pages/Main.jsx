@@ -17,6 +17,7 @@ export default function Main() {
   const imagesBoxRef = useRef(null);
   const outerWidthRef = useRef(0);
   const autoSlideRef = useRef(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const eventBanners = [
     eventBanner1,
@@ -39,18 +40,26 @@ export default function Main() {
 
   useEffect(() => {
     getProducts();
-
-    outerWidthRef.current = imagesBoxRef.current.offsetWidth;
-    window.addEventListener("resize", () => {
-      outerWidthRef.current = imagesBoxRef.current.offsetWidth;
-    });
-
-    autoSlideRef.current = setInterval(() => moveToNextImage(), 3000);
-
-    return () => {
-      clearInterval(autoSlideRef.current);
-    };
   }, []);
+
+  useEffect(() => {
+    if (imagesBoxRef.current) {
+      outerWidthRef.current = imagesBoxRef.current.offsetWidth;
+
+      const handleResize = () => {
+        outerWidthRef.current = imagesBoxRef.current.offsetWidth;
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      autoSlideRef.current = setInterval(() => moveToNextImage(), 3000);
+
+      return () => {
+        clearInterval(autoSlideRef.current);
+        window.removeEventListener("resize", handleResize);
+      };
+    }
+  }, [imagesBoxRef.current]);
 
   const moveToNextImage = () => {
     setClick((prevClick) => (prevClick + 1) % eventBanners.length);
@@ -73,6 +82,16 @@ export default function Main() {
       }px)`;
     }
   }, [click]);
+
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+  };
+
+  useEffect(() => {
+    if (selectedProduct) {
+      console.log(selectedProduct);
+    }
+  }, [selectedProduct]);
 
   return (
     <>
@@ -114,8 +133,12 @@ export default function Main() {
         <ProductsContainerStyle>
           {products.map((product, index) => (
             <li key={product.product_id} className="product">
-              <button className="product-image" type="button">
-                <img src={product.image} alt="" />
+              <button
+                className="product-image"
+                type="button"
+                onClick={() => handleProductClick(product)}
+              >
+                <img src={product.image} alt="상품이미지" />
               </button>
               <p className="store-name">{product.store_name}</p>
               <strong className="product-name">{product.product_name}</strong>
