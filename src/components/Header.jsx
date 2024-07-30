@@ -19,10 +19,18 @@ export default function Header() {
     }
   };
 
+  const handleLogoButtonClick = () => {
+    navigate("/");
+  };
+
   return (
     <HeaderStyle>
       <SearchContainerStyle>
-        <button className="main-logo" type="button">
+        <button
+          className="main-logo"
+          type="button"
+          onClick={handleLogoButtonClick}
+        >
           <img src={logo} alt="로고" />
         </button>
         <input
