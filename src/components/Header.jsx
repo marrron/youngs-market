@@ -1,15 +1,17 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import logo from "../assets/images/Logo-youngs.svg";
 import iconSearch from "../assets/images/icon-search.svg";
 import iconShoppingCart from "../assets/images/icon-shopping-cart.svg";
+import iconShoppingCart2 from "../assets/images/icon-shopping-cart-2.svg";
 import iconUser from "../assets/images/icon-user.svg";
 
 export default function Header() {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleUserButtonClick = () => {
     if (token) {
@@ -22,6 +24,17 @@ export default function Header() {
   const handleLogoButtonClick = () => {
     navigate("/");
   };
+
+  const handleShoppingCartButtonClick = () => {
+    navigate("/shoppingcart");
+  };
+
+  const isShoppingCartPage = location.pathname === "/shoppingcart";
+  const shoppingCartIcon = isShoppingCartPage
+    ? iconShoppingCart2
+    : iconShoppingCart;
+
+  const cartTextColor = isShoppingCartPage ? "var(--color-orange)" : "inherit";
 
   return (
     <HeaderStyle>
@@ -43,9 +56,13 @@ export default function Header() {
         </button>
       </SearchContainerStyle>
       <UserControlsStyle>
-        <button className="btn-shopping-cart" type="button">
-          <img src={iconShoppingCart} alt="장바구니" />
-          <p>장바구니</p>
+        <button
+          className="btn-shopping-cart"
+          type="button"
+          onClick={handleShoppingCartButtonClick}
+        >
+          <img src={shoppingCartIcon} alt="장바구니" />
+          <p style={{ color: cartTextColor }}>장바구니</p>
         </button>
 
         <button
