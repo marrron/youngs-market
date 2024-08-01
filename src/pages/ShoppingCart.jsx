@@ -1,12 +1,37 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import iconPlus from "../assets/images/icon-plus-line.svg";
 import iconMinus from "../assets/images/icon-minus-line.svg";
 import deleteBtn from "../assets/images/icon-delete.svg";
+import { useAuth } from "../context/AuthContext";
 
 export default function ShoppingCart() {
+  const [cartItems, setCartItems] = useState([]);
+  const { token } = useAuth();
+
+  const getShoppingCartItems = () => {
+    fetch("https://openmarket.weniv.co.kr/cart/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log(data.results);
+        setCartItems(data.results);
+      });
+  };
+
+  console.log(cartItems);
+
+  useEffect(() => {
+    getShoppingCartItems();
+  }, []);
+
   return (
     <>
       <Header />
@@ -15,7 +40,7 @@ export default function ShoppingCart() {
         <ProductDetailStyle>
           <div>
             <input type="radio" id="select-all" />
-            <label for="select-all"></label>
+            <label htmlFor="select-all"></label>
           </div>
           <span>상품정보</span>
           <span>수량</span>
@@ -25,7 +50,7 @@ export default function ShoppingCart() {
           <CartItemStyle>
             <div>
               <input type="radio" id="cart-item-check" />
-              <label for="cart-item-check"></label>
+              <label htmlFor="cart-item-check"></label>
             </div>
             <button type="button">
               <img
@@ -45,9 +70,7 @@ export default function ShoppingCart() {
               <button type="button">
                 <img src={iconMinus} alt="수량감소버튼" />
               </button>
-              <button class="product-quantity" type="button">
-                1
-              </button>
+              <button type="button">1</button>
               <button type="button">
                 <img src={iconPlus} alt="수량추가버튼" />
               </button>
@@ -85,12 +108,8 @@ export default function ShoppingCart() {
             </div>
           </PaymentAmountCalculationStyle>
           <FinalActionsStyle>
-            <button class="final-order-btn" type="button">
-              주문하기
-            </button>
-            <button class="final-delete-btn" type="button">
-              선택삭제
-            </button>
+            <button type="button">주문하기</button>
+            <button type="button">선택삭제</button>
           </FinalActionsStyle>
         </div>
       </MainStyle>
