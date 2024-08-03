@@ -6,11 +6,15 @@ import iconPlus from "../assets/images/icon-plus-line.svg";
 import iconMinus from "../assets/images/icon-minus-line.svg";
 import deleteBtn from "../assets/images/icon-delete.svg";
 import { useAuth } from "../context/AuthContext";
+import { useProduct } from "../context/ProductContext";
 
 export default function ShoppingCart() {
   const [cartItems, setCartItems] = useState([]);
+  const [cartItemsIntersection, setCartItemsIntersection] = useState([]);
   const { token } = useAuth();
+  const { products } = useProduct();
 
+  // 장바구니 목록 GET
   const getShoppingCartItems = () => {
     fetch("https://openmarket.weniv.co.kr/cart/", {
       method: "GET",
@@ -26,11 +30,37 @@ export default function ShoppingCart() {
       });
   };
 
-  console.log(cartItems);
-
   useEffect(() => {
     getShoppingCartItems();
   }, []);
+
+  console.log(products);
+  console.log(cartItems, cartItemsIntersection);
+
+  // 장바구니 목록 display
+  useEffect(() => {
+    if (products.length > 0 && cartItems.length > 0) {
+      const intersection = products
+        .filter((item) =>
+          cartItems.some((product) => product.product_id === item.product_id)
+        )
+        .map((product) => {
+          const cartItem = cartItems.find(
+            (item) => item.product_id === product.product_id
+          );
+          return {
+            ...product,
+            quantity: cartItem ? cartItem.quantity : 1,
+          };
+        });
+      setCartItemsIntersection(intersection);
+    }
+  }, [products, cartItems]);
+
+  // 천단위 (,)
+  const formatPrice = (price) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
 
   return (
     <>
@@ -47,42 +77,41 @@ export default function ShoppingCart() {
           <span>상품금액</span>
         </ProductDetailStyle>
         <ShoppingCartStyle>
-          <CartItemStyle>
-            <div>
-              <input type="radio" id="cart-item-check" />
-              <label htmlFor="cart-item-check"></label>
-            </div>
-            <button type="button">
-              <img
-                src="https://openmarket.weniv.co.kr/media/products/2024/06/09/166_4d8c96203a6148c90363da17b1bcc7b7.jpg"
-                alt="상품이미지"
-              />
-            </button>
-            <div>
-              <p>백엔드글로벌</p>
-              <p>딥러닝 개발자 무릎 담요</p>
-              <strong>17,500원</strong>
-              <p>
-                택배배송<span>/</span>무료배송
-              </p>
-            </div>
-            <div>
+          {cartItemsIntersection.map((item) => (
+            <CartItemStyle key={item.product_id}>
+              <div>
+                <input type="radio" id="cart-item-check" />
+                <label htmlFor="cart-item-check"></label>
+              </div>
               <button type="button">
-                <img src={iconMinus} alt="수량감소버튼" />
+                <img src={item.image} alt="상품이미지" />
               </button>
-              <button type="button">1</button>
-              <button type="button">
-                <img src={iconPlus} alt="수량추가버튼" />
-              </button>
-            </div>
-            <div>
-              <strong>17,500원</strong>
-              <button type="button">주문하기</button>
-            </div>
-            <DeleteBtnStyle type="button">
-              <img src={deleteBtn} alt="삭제버튼" />
-            </DeleteBtnStyle>
-          </CartItemStyle>
+              <div>
+                <p>{item.store_name}</p>
+                <p>{item.product_name}</p>
+                <strong>{formatPrice(item.price)}원</strong>
+                <p>
+                  택배배송<span>/</span>무료배송
+                </p>
+              </div>
+              <div>
+                <button type="button">
+                  <img src={iconMinus} alt="수량감소버튼" />
+                </button>
+                <button type="button">{item.quantity}</button>
+                <button type="button">
+                  <img src={iconPlus} alt="수량추가버튼" />
+                </button>
+              </div>
+              <div>
+                <strong>{formatPrice(item.price * item.quantity)}원</strong>
+                <button type="button">주문하기</button>
+              </div>
+              <DeleteBtnStyle type="button">
+                <img src={deleteBtn} alt="삭제버튼" />
+              </DeleteBtnStyle>
+            </CartItemStyle>
+          ))}
         </ShoppingCartStyle>
         <div>
           <PaymentAmountCalculationStyle>
