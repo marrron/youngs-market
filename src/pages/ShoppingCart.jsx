@@ -7,12 +7,13 @@ import iconMinus from "../assets/images/icon-minus-line.svg";
 import deleteBtn from "../assets/images/icon-delete.svg";
 import { useAuth } from "../context/AuthContext";
 import { useProduct } from "../context/ProductContext";
+import { useCartItems } from "../context/CartContext";
 
 export default function ShoppingCart() {
   const [cartItems, setCartItems] = useState([]);
-  const [cartItemsIntersection, setCartItemsIntersection] = useState([]);
   const { token } = useAuth();
   const { products } = useProduct();
+  const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
 
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
@@ -59,7 +60,10 @@ export default function ShoppingCart() {
 
   // 천단위 (,)
   const formatPrice = (price) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (price !== undefined && price !== null) {
+      return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    return "0";
   };
 
   return (
