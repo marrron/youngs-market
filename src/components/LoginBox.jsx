@@ -18,6 +18,7 @@ const LoginBox = () => {
 		setLoginType(index === 0 ? "BUYER" : "SELLER");
 		setUsername("");
 		setPassword("");
+		setErrorMessage("");
 	};
 
 	const handleSubmit = (event) => {
