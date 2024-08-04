@@ -15,7 +15,7 @@ export default function SignUp() {
 const BackGround = styled.div`
 	background-color: var(--color-bg);
 	height: 100vh;
-	padding-top: 100px;
+	padding-top: 70px;
 
 	img {
 		width: 266px;

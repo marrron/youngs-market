@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import iconCheckBox from "../assets/images/icon-check-box.svg";
+import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
+	const [firstDigit, setFirstDigit] = useState("010");
+	const [middleDigit, setMiddleDigit] = useState("");
+	const [lastDigit, setLastDigit] = useState("");
+
+	const firstDigits = ["010", "011", "016", "017", "018", "019"];
 
 	const handleTabClick = (index) => {
 		setActiveTab(index);
@@ -23,37 +30,34 @@ const SignUpBox = () => {
 					{activeTab === 0 ? (
 						<Form action="/login" method="post">
 							<p>아이디</p>
-							<Input
-								type="email"
-								id="buyer-email"
-								name="buyer-email"
-								placeholder=""
-								required
-							/>
+							<Input type="text" placeholder="" required />
 							<p>비밀번호</p>
-							<Input
-								type="password"
-								id="buyer-password"
-								name="buyer-password"
-								placeholder=""
-								required
-							/>
+							<Input type="password" placeholder="" required />
 							<p>비밀번호 재확인</p>
-							<Input
-								type="password"
-								id="buyer-password"
-								name="buyer-password"
-								placeholder=""
-								required
-							/>
+							<Input type="password" placeholder="" required />
 							<p>이름</p>
-							<Input
-								type="text"
-								id="buyer-name"
-								name="buyer-name"
-								placeholder=""
-								required
-							/>
+							<Input type="text" placeholder="" required />
+							<p>휴대폰번호</p>
+							<PhoneNumber>
+								<select
+									value={firstDigit}
+									onChange={(e) => setFirstDigit(e.target.value)}
+								>
+									{firstDigits.map((code) => (
+										<option key={code} value={code}>
+											{code}
+										</option>
+									))}
+								</select>
+								<input type="text" />
+								<input type="text" />
+							</PhoneNumber>
+							<p>이메일</p>
+							<Email>
+								<input type="text" />
+								@
+								<input type="text" />
+							</Email>
 						</Form>
 					) : (
 						<Form action="/login" method="post">
@@ -75,6 +79,17 @@ const SignUpBox = () => {
 					)}
 				</FormContainer>
 			</SignUpContainer>
+			<Terms>
+				<img src={iconCheckBox} alt="" />
+				<p>
+					호두샵의 <u style={{ fontWeight: 700 }}>이용약관</u> 및{" "}
+					<u style={{ fontWeight: 700 }}>개인정보처리방침</u>에 대한 내용을
+					확인하였고 동의합니다.
+				</p>
+			</Terms>
+			<Join>
+				<button>가입하기</button>
+			</Join>
 		</>
 	);
 };
@@ -125,6 +140,7 @@ const Tab = styled.div`
 const FormContainer = styled.div`
 	padding-left: 35px;
 	padding-right: 35px;
+	padding-bottom: 36px;
 `;
 
 const Form = styled.form`
@@ -139,6 +155,12 @@ const Form = styled.form`
 	p:nth-child(7) {
 		margin-top: 38px;
 	}
+	p:nth-child(9) {
+		margin-top: 4px;
+	}
+	p:nth-child(11) {
+		margin-top: 4px;
+	}
 `;
 
 const Input = styled.input`
@@ -149,16 +171,69 @@ const Input = styled.input`
 	margin-bottom: 12px;
 `;
 
-const Button = styled.button`
-	background-color: var(--color-maroon);
+const PhoneNumber = styled.div`
+	display: flex;
+	align-items: center;
+	margin-bottom: 12px;
+
+	select {
+		width: 152px;
+		height: 54px;
+		border: solid 1px var(--color-orange);
+		border-radius: 5px;
+	}
+
+	input {
+		margin-left: 12px;
+		width: 152px;
+		height: 54px;
+		border: solid 1px var(--color-orange);
+		border-radius: 5px;
+		font-size: 18px;
+	}
+`;
+
+const Email = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	input {
+		width: 220px;
+		height: 54px;
+		border: solid 1px var(--color-orange);
+		border-radius: 5px;
+	}
+`;
+
+const Terms = styled.div`
+	margin: 34px auto;
 	width: 480px;
-	height: 60px;
-	border-radius: 10px;
-	font-size: 18px;
-	color: white;
-	margin-top: 30px;
-	margin-bottom: 36px;
-	font-weight: 700;
+	height: 40px;
+	display: flex;
+	font-size: 16px;
+	color: var(--color-darkgrey);
+
+	img {
+		width: 16px;
+		height: 16px;
+		margin-right: 10px;
+	}
+`;
+
+const Join = styled.div`
+	width: 480px;
+	margin: 0 auto;
+
+	button {
+		width: 100%;
+		height: 60px;
+		border-radius: 5px;
+		background-color: var(--color-orange);
+		color: var(--color-white);
+		font-size: 18px;
+		margin-bottom: 110px;
+	}
 `;
 
 export default SignUpBox;
