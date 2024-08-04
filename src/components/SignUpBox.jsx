@@ -64,20 +64,38 @@ const SignUpBox = () => {
 						</Form>
 					) : (
 						<Form action="/login" method="post">
-							<Input
-								type="email"
-								id="seller-email"
-								name="seller-email"
-								placeholder="아이디"
-								required
-							/>
-							<Input
-								type="password"
-								id="seller-password"
-								name="seller-password"
-								placeholder="비밀번호"
-								required
-							/>
+							<p>아이디</p>
+							<InputId>
+								<input type="text" placeholder="" required />
+								<button>중복확인</button>
+							</InputId>
+							<p>비밀번호</p>
+							<Input type="password" placeholder="" required />
+							<p>비밀번호 재확인</p>
+							<Input type="password" placeholder="" required />
+							<p>이름</p>
+							<Input type="text" placeholder="" required />
+							<p>휴대폰번호</p>
+							<PhoneNumber>
+								<select
+									value={firstDigit}
+									onChange={(e) => setFirstDigit(e.target.value)}
+								>
+									{firstDigits.map((code) => (
+										<option key={code} value={code}>
+											{code}
+										</option>
+									))}
+								</select>
+								<input type="text" />
+								<input type="text" />
+							</PhoneNumber>
+							<p>이메일</p>
+							<Email>
+								<input type="text" />
+								@
+								<input type="text" />
+							</Email>
 						</Form>
 					)}
 				</FormContainer>
