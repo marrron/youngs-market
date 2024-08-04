@@ -30,10 +30,10 @@ const SignUpBox = () => {
 					{activeTab === 0 ? (
 						<Form action="/login" method="post">
 							<p>아이디</p>
-							<InputId>
+							<InpBtnGroup>
 								<input type="text" placeholder="" required />
 								<button>중복확인</button>
-							</InputId>
+							</InpBtnGroup>
 							<p>비밀번호</p>
 							<Input type="password" placeholder="" required />
 							<p>비밀번호 재확인</p>
@@ -65,10 +65,10 @@ const SignUpBox = () => {
 					) : (
 						<Form action="/login" method="post">
 							<p>아이디</p>
-							<InputId>
+							<InpBtnGroup>
 								<input type="text" placeholder="" required />
 								<button>중복확인</button>
-							</InputId>
+							</InpBtnGroup>
 							<p>비밀번호</p>
 							<Input type="password" placeholder="" required />
 							<p>비밀번호 재확인</p>
@@ -96,6 +96,13 @@ const SignUpBox = () => {
 								@
 								<input type="text" />
 							</Email>
+							<p style={{ marginTop: "50px" }}>사업자 등록번호</p>
+							<InpBtnGroup>
+								<input type="text" placeholder="" required />
+								<button>인증</button>
+							</InpBtnGroup>
+							<p>스토어 이름</p>
+							<Input type="text" placeholder="" required />
 						</Form>
 					)}
 				</FormContainer>
@@ -182,9 +189,12 @@ const Form = styled.form`
 	p:nth-child(11) {
 		margin-top: 4px;
 	}
+	p:nth-child(15) {
+		margin-top: 4px;
+	}
 `;
 
-const InputId = styled.div`
+const InpBtnGroup = styled.div`
 	display: flex;
 	width: 480px;
 	margin-bottom: 12px;
