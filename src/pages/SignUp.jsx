@@ -6,7 +6,7 @@ import SignUpBox from "../components/SignUpBox";
 export default function SignUp() {
 	return (
 		<BackGround>
-			<img src={LogoYoungs} alt="" />
+			<img src={LogoYoungs} alt="" className="logo" />
 			<SignUpBox></SignUpBox>
 		</BackGround>
 	);
@@ -17,7 +17,7 @@ const BackGround = styled.div`
 	height: 100vh;
 	padding-top: 70px;
 
-	img {
+	.logo {
 		width: 266px;
 		display: block;
 		margin: 0 auto 70px;
