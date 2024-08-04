@@ -30,7 +30,10 @@ const SignUpBox = () => {
 					{activeTab === 0 ? (
 						<Form action="/login" method="post">
 							<p>아이디</p>
-							<Input type="text" placeholder="" required />
+							<InputId>
+								<input type="text" placeholder="" required />
+								<button>중복확인</button>
+							</InputId>
 							<p>비밀번호</p>
 							<Input type="password" placeholder="" required />
 							<p>비밀번호 재확인</p>
@@ -163,12 +166,36 @@ const Form = styled.form`
 	}
 `;
 
+const InputId = styled.div`
+	display: flex;
+	width: 480px;
+	margin-bottom: 12px;
+	justify-content: space-between;
+
+	input {
+		width: 346px;
+		height: 54px;
+		border: solid 1px var(--color-orange);
+		border-radius: 5px;
+	}
+
+	button {
+		width: 122px;
+		height: 54px;
+		background-color: var(--color-maroon);
+		border-radius: 5px;
+		color: white;
+		font-size: 16px;
+	}
+`;
+
 const Input = styled.input`
 	width: 480px;
 	height: 54px;
 	border: solid 1px var(--color-orange);
 	border-radius: 5px;
 	margin-bottom: 12px;
+	font-size: 16px;
 `;
 
 const PhoneNumber = styled.div`
