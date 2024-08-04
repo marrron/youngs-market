@@ -3,6 +3,13 @@ import { createGlobalStyle } from "styled-components";
 
 const GlobalStyles = createGlobalStyle`
     ${reset}
+
+    @font-face {
+    font-family: 'SpoqaHanSansNeo-Regular';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SpoqaHanSansNeo-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
     .a11y-hidden {
         clip: rect(1px, 1px, 1px, 1px);
         clip-path: inset(50%);
@@ -15,6 +22,7 @@ const GlobalStyles = createGlobalStyle`
     }
     * {
         box-sizing: border-box;
+        font-family: 'SpoqaHanSansNeo-Regular';
     }
     button {
         border: 0;
@@ -39,6 +47,7 @@ const GlobalStyles = createGlobalStyle`
         display: flex;
         flex-direction: column;
         background: var(--color-bg);
+        font-family: 'SpoqaHanSansNeo-Regular';
     }
 
 
