@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +11,7 @@ import Footer from "../components/Footer";
 import Modal from "../components/Modal";
 
 export default function ProductDetail() {
+  const navigate = useNavigate();
   const { selectedProduct } = useProduct();
   const { cartItemsIntersection } = useCartItems();
   const { token } = useAuth();
@@ -58,22 +60,27 @@ export default function ProductDetail() {
     const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
     console.log("cartStock", cartStock, "cartQuantity", cartQuantity);
 
-    if (inCartItem.length > 0 && cartStock >= cartQuantity + quantity) {
-      setModalTxt(
-        "이미 장바구니에 있는 상품입니다.\n장바구니로 이동하시겠습니까?"
-      );
-      openModal();
-    } else if (inCartItem.length > 0 && cartStock < cartQuantity + quantity) {
-      setModalTxt(
-        "재고 수량이 부족하여\n장바구니에 담을 수 없습니다.\n장바구니로 이동하시겠습니까?"
-      );
-      openModal();
+    if (token) {
+      if (inCartItem.length > 0 && cartStock >= cartQuantity + quantity) {
+        setModalTxt(
+          "이미 장바구니에 있는 상품입니다.\n장바구니로 이동하시겠습니까?"
+        );
+        openModal();
+      } else if (inCartItem.length > 0 && cartStock < cartQuantity + quantity) {
+        setModalTxt(
+          "재고 수량이 부족하여\n장바구니에 담을 수 없습니다.\n장바구니로 이동하시겠습니까?"
+        );
+        openModal();
+      } else {
+        setModalTxt(
+          "장바구니에 상품을 담았습니다.\n장바구니로 이동하시겠습니까?"
+        );
+        openModal();
+        putInShoppingCart();
+      }
     } else {
-      setModalTxt(
-        "장바구니에 상품을 담았습니다.\n장바구니로 이동하시겠습니까?"
-      );
       openModal();
-      putInShoppingCart();
+      setModalTxt("로그인이 필요한 서비스입니다.\n로그인하시겠습니까?");
     }
   };
 
@@ -109,6 +116,16 @@ export default function ProductDetail() {
     setInCartItem(filteredCartItem);
     console.log(filteredCartItem, selectedProduct.product_id);
   }, [cartItemsIntersection, selectedProduct.product_id]);
+
+  // 바로구매 버튼
+  const handleBuyNowBtnClick = () => {
+    if (token) {
+      navigate("/order");
+    } else {
+      openModal();
+      setModalTxt("로그인이 필요한 서비스입니다.\n로그인하시겠습니까?");
+    }
+  };
 
   return (
     <>
@@ -166,7 +183,11 @@ export default function ProductDetail() {
           <PurchaseActionStyle>
             {selectedProduct.stock > 0 ? (
               <>
-                <button className="purchase-btn" type="button">
+                <button
+                  onClick={handleBuyNowBtnClick}
+                  className="purchase-btn"
+                  type="button"
+                >
                   바로구매
                 </button>
                 <button
