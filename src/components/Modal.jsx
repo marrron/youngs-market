@@ -69,6 +69,18 @@ const ModalStyle = styled.div`
     position: absolute;
     top: 18px;
     right: 18px;
+
+    &:hover::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      right: -7px;
+      height: 35px;
+      width: 35px;
+      border-radius: 50%;
+      background-color: #000;
+      opacity: 0.1;
+    }
   }
 `;
 
