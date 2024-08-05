@@ -30,7 +30,7 @@ export default function ShoppingCart() {
       .then((response) => response.json())
       .then((data) => {
         // console.log(data.results);
-        setCartItems(data.results);
+        setCartItems(data.results || []);
       });
   };
 
@@ -93,76 +93,87 @@ export default function ShoppingCart() {
           <span>수량</span>
           <span>상품금액</span>
         </ProductDetailStyle>
-        <ShoppingCartStyle>
-          {cartItemsIntersection.map((item) => {
-            const id = `cart-item-check-${item.cart_item_id}`;
-            return (
-              <CartItemStyle key={item.product_id}>
-                <div>
-                  <input type="radio" id={id} name="cart-item-id" />
-                  <label htmlFor={id}></label>
-                </div>
-                <button type="button">
-                  <img src={item.image} alt="상품이미지" />
-                </button>
-                <div>
-                  <p>{item.store_name}</p>
-                  <p>{item.product_name}</p>
-                  <strong>{formatPrice(item.price)}원</strong>
-                  <p>
-                    택배배송<span>/</span>무료배송
-                  </p>
-                </div>
-                <div>
-                  <button type="button">
-                    <img src={iconMinus} alt="수량감소버튼" />
-                  </button>
-                  <button type="button">{item.quantity}</button>
-                  <button type="button">
-                    <img src={iconPlus} alt="수량추가버튼" />
-                  </button>
-                </div>
-                <div>
-                  <strong>{formatPrice(item.price * item.quantity)}원</strong>
-                  <button type="button">주문하기</button>
-                </div>
-                <DeleteBtnStyle type="button">
-                  <img src={deleteBtn} alt="삭제버튼" />
-                </DeleteBtnStyle>
-              </CartItemStyle>
-            );
-          })}
-        </ShoppingCartStyle>
-        <div>
-          <PaymentAmountCalculationStyle>
+        {token ? (
+          <>
+            <ShoppingCartStyle>
+              {cartItemsIntersection.map((item) => {
+                const id = `cart-item-check-${item.cart_item_id}`;
+                return (
+                  <CartItemStyle key={item.product_id}>
+                    <div>
+                      <input type="radio" id={id} name="cart-item-id" />
+                      <label htmlFor={id}></label>
+                    </div>
+                    <button type="button">
+                      <img src={item.image} alt="상품이미지" />
+                    </button>
+                    <div>
+                      <p>{item.store_name}</p>
+                      <p>{item.product_name}</p>
+                      <strong>{formatPrice(item.price)}원</strong>
+                      <p>
+                        택배배송<span>/</span>무료배송
+                      </p>
+                    </div>
+                    <div>
+                      <button type="button">
+                        <img src={iconMinus} alt="수량감소버튼" />
+                      </button>
+                      <button type="button">{item.quantity}</button>
+                      <button type="button">
+                        <img src={iconPlus} alt="수량추가버튼" />
+                      </button>
+                    </div>
+                    <div>
+                      <strong>
+                        {formatPrice(item.price * item.quantity)}원
+                      </strong>
+                      <button type="button">주문하기</button>
+                    </div>
+                    <DeleteBtnStyle type="button">
+                      <img src={deleteBtn} alt="삭제버튼" />
+                    </DeleteBtnStyle>
+                  </CartItemStyle>
+                );
+              })}
+            </ShoppingCartStyle>
             <div>
-              <p>총 상품금액</p>
-              <strong>{formatPrice(totalAmount)}</strong>
-              <span>원</span>
+              <PaymentAmountCalculationStyle>
+                <div>
+                  <p>총 상품금액</p>
+                  <strong>{formatPrice(totalAmount)}</strong>
+                  <span>원</span>
+                </div>
+                <div>
+                  <p>상품 할인</p>
+                  <strong>{formatPrice(productDiscount)}</strong>
+                  <span> 원 </span>
+                </div>
+                <div>
+                  <p>배송비</p>
+                  <strong>{formatPrice(deliveryFee)}</strong>
+                  <span>원</span>
+                </div>
+                <div>
+                  <p>결제 예정 금액</p>
+                  <strong>
+                    {formatPrice(totalAmount - productDiscount + deliveryFee)}
+                  </strong>
+                  <span>원</span>
+                </div>
+              </PaymentAmountCalculationStyle>
+              <FinalActionsStyle>
+                <button type="button">주문하기</button>
+                <button type="button">선택삭제</button>
+              </FinalActionsStyle>
             </div>
-            <div>
-              <p>상품 할인</p>
-              <strong>{formatPrice(productDiscount)}</strong>
-              <span> 원 </span>
-            </div>
-            <div>
-              <p>배송비</p>
-              <strong>{formatPrice(deliveryFee)}</strong>
-              <span>원</span>
-            </div>
-            <div>
-              <p>결제 예정 금액</p>
-              <strong>
-                {formatPrice(totalAmount - productDiscount + deliveryFee)}
-              </strong>
-              <span>원</span>
-            </div>
-          </PaymentAmountCalculationStyle>
-          <FinalActionsStyle>
-            <button type="button">주문하기</button>
-            <button type="button">선택삭제</button>
-          </FinalActionsStyle>
-        </div>
+          </>
+        ) : (
+          <NoCartItemStyle>
+            <strong>장바구니에 담긴 상품이 없습니다.</strong>
+            <p>원하는 상품을 장바구니에 담아보세요!</p>
+          </NoCartItemStyle>
+        )}
       </MainStyle>
       <Footer />
     </>
@@ -499,5 +510,22 @@ const FinalActionsStyle = styled.div`
       transform: translateX(14px);
       opacity: 0.2;
     }
+  }
+`;
+
+const NoCartItemStyle = styled.div`
+  text-align: center;
+  padding: 200px 0 442px 0;
+
+  strong {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--color-black);
+  }
+
+  p {
+    padding-top: 17px;
+    font-size: 14px;
+    color: var(--color-darkgrey);
   }
 `;
