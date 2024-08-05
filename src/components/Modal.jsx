@@ -1,17 +1,30 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import delteBtn from "../assets/images/icon-delete.svg";
 
 export default function Modal({ closeModal, modalTxt }) {
+  const navigate = useNavigate();
+
+  const handleRightBtnClick = () => {
+    navigate("/shoppingcart");
+  };
+
   return (
     <ModalBgStyle>
       <ModalStyle>
-        <p>{modalTxt}</p>
+        <div>
+          {modalTxt.split("\n").map((line, index) => (
+            <p key={index}>{line}</p>
+          ))}
+        </div>
         <AnswerActionStyle>
           <button type="button" onClick={closeModal}>
             아니오
           </button>
-          <button type="button">예</button>
+          <button type="button" onClick={handleRightBtnClick}>
+            예
+          </button>
         </AnswerActionStyle>
         <button type="button">
           <img src={delteBtn} alt="닫기버튼" onClick={closeModal} />
