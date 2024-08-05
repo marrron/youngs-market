@@ -14,6 +14,9 @@ export default function ShoppingCart() {
   const { token } = useAuth();
   const { products } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [productDiscount, _] = useState(0);
+  const [deliveryFee, __] = useState(0);
 
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
@@ -52,6 +55,7 @@ export default function ShoppingCart() {
           return {
             ...product,
             quantity: cartItem ? cartItem.quantity : 1,
+            cart_item_id: cartItem ? cartItem.cart_item_id : "",
           };
         });
       setCartItemsIntersection(intersection);
@@ -65,6 +69,15 @@ export default function ShoppingCart() {
     }
     return "0";
   };
+
+  // 상품의 총 금액 구하기
+  useEffect(() => {
+    const total = cartItemsIntersection.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+    setTotalAmount(total);
+  }, [cartItemsIntersection]);
 
   return (
     <>
@@ -81,62 +94,67 @@ export default function ShoppingCart() {
           <span>상품금액</span>
         </ProductDetailStyle>
         <ShoppingCartStyle>
-          {cartItemsIntersection.map((item) => (
-            <CartItemStyle key={item.product_id}>
-              <div>
-                <input type="radio" id="cart-item-check" />
-                <label htmlFor="cart-item-check"></label>
-              </div>
-              <button type="button">
-                <img src={item.image} alt="상품이미지" />
-              </button>
-              <div>
-                <p>{item.store_name}</p>
-                <p>{item.product_name}</p>
-                <strong>{formatPrice(item.price)}원</strong>
-                <p>
-                  택배배송<span>/</span>무료배송
-                </p>
-              </div>
-              <div>
+          {cartItemsIntersection.map((item) => {
+            const id = `cart-item-check-${item.cart_item_id}`;
+            return (
+              <CartItemStyle key={item.product_id}>
+                <div>
+                  <input type="radio" id={id} name="cart-item-id" />
+                  <label htmlFor={id}></label>
+                </div>
                 <button type="button">
-                  <img src={iconMinus} alt="수량감소버튼" />
+                  <img src={item.image} alt="상품이미지" />
                 </button>
-                <button type="button">{item.quantity}</button>
-                <button type="button">
-                  <img src={iconPlus} alt="수량추가버튼" />
-                </button>
-              </div>
-              <div>
-                <strong>{formatPrice(item.price * item.quantity)}원</strong>
-                <button type="button">주문하기</button>
-              </div>
-              <DeleteBtnStyle type="button">
-                <img src={deleteBtn} alt="삭제버튼" />
-              </DeleteBtnStyle>
-            </CartItemStyle>
-          ))}
+                <div>
+                  <p>{item.store_name}</p>
+                  <p>{item.product_name}</p>
+                  <strong>{formatPrice(item.price)}원</strong>
+                  <p>
+                    택배배송<span>/</span>무료배송
+                  </p>
+                </div>
+                <div>
+                  <button type="button">
+                    <img src={iconMinus} alt="수량감소버튼" />
+                  </button>
+                  <button type="button">{item.quantity}</button>
+                  <button type="button">
+                    <img src={iconPlus} alt="수량추가버튼" />
+                  </button>
+                </div>
+                <div>
+                  <strong>{formatPrice(item.price * item.quantity)}원</strong>
+                  <button type="button">주문하기</button>
+                </div>
+                <DeleteBtnStyle type="button">
+                  <img src={deleteBtn} alt="삭제버튼" />
+                </DeleteBtnStyle>
+              </CartItemStyle>
+            );
+          })}
         </ShoppingCartStyle>
         <div>
           <PaymentAmountCalculationStyle>
             <div>
               <p>총 상품금액</p>
-              <strong>46,500</strong>
+              <strong>{formatPrice(totalAmount)}</strong>
               <span>원</span>
             </div>
             <div>
               <p>상품 할인</p>
-              <strong>0</strong>
+              <strong>{formatPrice(productDiscount)}</strong>
               <span> 원 </span>
             </div>
             <div>
               <p>배송비</p>
-              <strong>0</strong>
+              <strong>{formatPrice(deliveryFee)}</strong>
               <span>원</span>
             </div>
             <div>
               <p>결제 예정 금액</p>
-              <strong>46,500</strong>
+              <strong>
+                {formatPrice(totalAmount - productDiscount + deliveryFee)}
+              </strong>
               <span>원</span>
             </div>
           </PaymentAmountCalculationStyle>
