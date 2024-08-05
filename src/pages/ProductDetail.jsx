@@ -1,35 +1,118 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useProduct } from "../context/ProductContext";
+import { useCartItems } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import styled from "styled-components";
 import minusBtn from "../assets/images/icon-minus-line.svg";
 import plusBtn from "../assets/images/icon-plus-line.svg";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Modal from "../components/Modal";
 
 export default function ProductDetail() {
   const { selectedProduct } = useProduct();
-  console.log(selectedProduct);
+  const { cartItemsIntersection } = useCartItems();
+  const { token } = useAuth();
   const [quantity, setQuantity] = useState(1);
+  const [activeBtn, setActiveBtn] = useState("버튼");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTxt, setModalTxt] = useState("");
+  const [inCartItem, setInCartItem] = useState([]);
 
+  // 수량 증가 버튼
   const increaseQuantity = () => {
     setQuantity((prevQuantity) =>
       selectedProduct.stock > prevQuantity ? prevQuantity + 1 : prevQuantity
     );
   };
 
+  // 수량 감소 버튼
   const decreaseQuantity = () => {
     setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 1));
   };
 
+  // selectedProduct price
   const formattedPrice = (price) => {
     return price.toLocaleString();
   };
-
   const totalPrice = selectedProduct.price * quantity;
   const formattedTotalPrice = totalPrice.toLocaleString();
 
+  // info-action 버튼
+  const handleInfoActionBtnClick = (buttonName) => {
+    setActiveBtn(buttonName);
+  };
+
+  // 모달버튼 클릭
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // 장바구니 버튼 클릭
+  const handleShoppingCartBtnClick = () => {
+    const cartStock = selectedProduct.stock;
+    const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
+    console.log("cartStock", cartStock, "cartQuantity", cartQuantity);
+
+    if (inCartItem.length > 0 && cartStock >= cartQuantity + quantity) {
+      setModalTxt(
+        "이미 장바구니에 있는 상품입니다.\n장바구니로 이동하시겠습니까?"
+      );
+      openModal();
+    } else if (inCartItem.length > 0 && cartStock < cartQuantity + quantity) {
+      setModalTxt(
+        "재고 수량이 부족하여\n장바구니에 담을 수 없습니다.\n장바구니로 이동하시겠습니까?"
+      );
+      openModal();
+    } else {
+      setModalTxt(
+        "장바구니에 상품을 담았습니다.\n장바구니로 이동하시겠습니까?"
+      );
+      openModal();
+      putInShoppingCart();
+    }
+  };
+
+  // 장바구니에 넣기
+  const putInShoppingCart = () => {
+    fetch("https://openmarket.weniv.co.kr/cart/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+      body: JSON.stringify({
+        product_id: selectedProduct.product_id,
+        quantity: quantity,
+        check: false,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("shoppingCart", data);
+      });
+  };
+
+  useEffect(() => {
+    const filteredCartItem = cartItemsIntersection.filter(
+      (item) => item.product_id === selectedProduct.product_id
+    );
+    setInCartItem(filteredCartItem);
+    console.log(filteredCartItem, selectedProduct.product_id);
+  }, [cartItemsIntersection, selectedProduct.product_id]);
+
   return (
     <>
+      {isModalOpen ? <Modal closeModal={closeModal} modalTxt={modalTxt} /> : ""}
       <Header />
       <MainStyle>
         <div className="product-image">
@@ -86,7 +169,11 @@ export default function ProductDetail() {
                 <button className="purchase-btn" type="button">
                   바로구매
                 </button>
-                <button className="shopping-cart-btn" type="button">
+                <button
+                  className="shopping-cart-btn"
+                  type="button"
+                  onClick={handleShoppingCartBtnClick}
+                >
                   장바구니
                 </button>
               </>
@@ -103,16 +190,34 @@ export default function ProductDetail() {
           </PurchaseActionStyle>
         </ProductInfoStyle>
         <InfoActionStyle>
-          <button className="info-btn info-active" type="button ">
+          <button
+            className={`info-btn ${activeBtn === "버튼" ? "info-active" : ""}`}
+            type="button "
+            onClick={() => handleInfoActionBtnClick("버튼")}
+          >
             버튼
           </button>
-          <button className="info-btn" type="button">
+          <button
+            className={`info-btn ${activeBtn === "리뷰" ? "info-active" : ""}`}
+            type="button"
+            onClick={() => handleInfoActionBtnClick("리뷰")}
+          >
             리뷰
           </button>
-          <button className="info-btn" type="button">
+          <button
+            className={`info-btn ${activeBtn === "Q&A" ? "info-active" : ""}`}
+            type="button"
+            onClick={() => handleInfoActionBtnClick("Q&A")}
+          >
             Q&A
           </button>
-          <button className="info-btn" type="button">
+          <button
+            className={`info-btn ${
+              activeBtn === "반품/교환정보" ? "info-active" : ""
+            }`}
+            type="button"
+            onClick={() => handleInfoActionBtnClick("반품/교환정보")}
+          >
             반품/교환정보
           </button>
         </InfoActionStyle>
