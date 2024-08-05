@@ -397,6 +397,7 @@ const PurchaseActionStyle = styled.div`
   .soldout-btn {
     background-color: var(--color-black);
     color: var(--color-white);
+    cursor: auto;
   }
 
   .left {
