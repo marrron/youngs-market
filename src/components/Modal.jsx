@@ -1,13 +1,19 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import styled from "styled-components";
-import delteBtn from "../assets/images/icon-delete.svg";
+import deleteBtn from "../assets/images/icon-delete.svg";
 
 export default function Modal({ closeModal, modalTxt }) {
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   const handleRightBtnClick = () => {
-    navigate("/shoppingcart");
+    if (!token) {
+      navigate("/login");
+    } else {
+      navigate("/shoppingcart");
+    }
   };
 
   return (
@@ -26,9 +32,9 @@ export default function Modal({ closeModal, modalTxt }) {
             예
           </button>
         </AnswerActionStyle>
-        <button type="button">
-          <img src={delteBtn} alt="닫기버튼" onClick={closeModal} />
-        </button>
+        <CloseButton type="button" onClick={closeModal}>
+          <img src={deleteBtn} alt="닫기버튼" />
+        </CloseButton>
       </ModalStyle>
     </ModalBgStyle>
   );
@@ -64,24 +70,6 @@ const ModalStyle = styled.div`
     font-size: 16px;
     line-height: 20px;
   }
-
-  button:nth-child(3) {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-
-    &:hover::after {
-      content: "";
-      position: absolute;
-      top: -6px;
-      right: -7px;
-      height: 35px;
-      width: 35px;
-      border-radius: 50%;
-      background-color: #000;
-      opacity: 0.1;
-    }
-  }
 `;
 
 const AnswerActionStyle = styled.div`
@@ -105,5 +93,26 @@ const AnswerActionStyle = styled.div`
   button:nth-child(2) {
     background-color: var(--color-maroon);
     color: var(--color-lightgrey);
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    right: -7px;
+    height: 35px;
+    width: 35px;
+    border-radius: 50%;
+    background-color: #000;
+    opacity: 0.1;
   }
 `;
