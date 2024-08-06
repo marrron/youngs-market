@@ -3,13 +3,16 @@ import Router from "./routes/Router";
 import GlobalStyles from "./style/GlobalStyles";
 import { AuthProvider } from "./context/AuthContext";
 import { ProductProvider } from "./context/ProductContext";
+import { CartProvider } from "./context/CartContext";
 
 function App() {
   return (
     <AuthProvider>
       <ProductProvider>
-        <GlobalStyles />
-        <Router />
+        <CartProvider>
+          <GlobalStyles />
+          <Router />
+        </CartProvider>
       </ProductProvider>
     </AuthProvider>
   );

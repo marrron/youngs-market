@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
 import styled from "styled-components";
@@ -8,9 +8,8 @@ import iconSoldout from "../assets/images/icon-soldout.svg";
 import ImageSlider from "../components/ImageSlider";
 
 export default function Main() {
-  const [products, setProducts] = useState([]);
   const navigate = useNavigate();
-  const { setSelectedProduct } = useProduct();
+  const { products, setProducts, setSelectedProduct } = useProduct();
 
   // 상품 전체 불러오기
   const getProducts = () => {
