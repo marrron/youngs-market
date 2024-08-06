@@ -1,18 +1,93 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
+	const [password2, setPassword2] = useState("");
+	const [name, setName] = useState("");
+	const [phoneNumber, setPhoneNumber] = useState("");
 	const [firstDigit, setFirstDigit] = useState("010");
 	const [middleDigit, setMiddleDigit] = useState("");
 	const [lastDigit, setLastDigit] = useState("");
+	const [errorMessage, setErrorMessage] = useState("");
+	const [idValidationMessage, setIdValidationMessage] = useState("");
+	const [messageColor, setMessageColor] = useState("");
+	const [checked, setChecked] = useState(false);
+
+	const navigate = useNavigate();
 
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
 
 	const handleTabClick = (index) => {
 		setActiveTab(index);
+	};
+
+	const handleSubmit = (event) => {
+		event.preventDefault(); // 폼 제출 방지
+
+		const AuthData = {
+			username,
+			password,
+			password2,
+			phone_number: `${firstDigit}-${middleDigit}-${lastDigit}`,
+			name,
+		};
+
+		axios
+			.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData) // 회원가입 API 호출
+			.then((response) => {
+				console.log("회원가입 성공:", response.data); // 성공 시 응답 데이터 출력
+				navigate("/");
+			})
+			.catch((error) => {
+				if (error.response) {
+					console.log("회원가입 실패:", error.response.data);
+					setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
+					navigate("/signup");
+				}
+			});
+	};
+
+	const handleIdValidation = (event) => {
+		event.preventDefault();
+
+		if (username === "") {
+			setIdValidationMessage("아이디를 입력해주세요."); // 아이디가 비어있을 경우 메시지 설정
+			setMessageColor("var(--color-red)");
+			return;
+		}
+
+		const AuthData = {
+			username,
+		};
+
+		axios
+			.post(
+				"https://openmarket.weniv.co.kr/accounts/signup/valid/username/",
+				AuthData
+			)
+			.then((response) => {
+				console.log("성공", response.data);
+				setIdValidationMessage("멋진 아이디네요 :)");
+				setMessageColor("var(--color-maroon");
+			})
+			.catch((error) => {
+				if (error.response) {
+					console.log("실패", error.response.data);
+					setIdValidationMessage("이미 사용중인 아이디 입니다.");
+					setMessageColor("var(--color-red)");
+				}
+			});
+	};
+
+	const handleCheck = () => {
+		setChecked(!checked);
 	};
 
 	return (
@@ -28,18 +103,54 @@ const SignUpBox = () => {
 			<SignUpContainer>
 				<FormContainer>
 					{activeTab === 0 ? (
-						<Form action="/login" method="post">
+						<Form onSubmit={handleSubmit}>
 							<p>아이디</p>
 							<InpBtnGroup>
-								<input type="text" placeholder="" required />
-								<button>중복확인</button>
+								<input
+									type="text"
+									placeholder=""
+									value={username}
+									onChange={(e) => {
+										setUsername(e.target.value);
+										setIdValidationMessage(""); // 입력 시 메시지 초기화
+									}}
+									required
+									style={{
+										border:
+											messageColor === "var(--color-red)"
+												? "1px solid var(--color-red)"
+												: "1px solid var(--color-orange)", // 메시지 색상이 빨간색일 때 테두리 색상 변경
+									}}
+								/>
+								<button onClick={handleIdValidation}>중복확인</button>
 							</InpBtnGroup>
+							{idValidationMessage && (
+								<p style={{ color: messageColor }}>{idValidationMessage}</p>
+							)}
 							<p>비밀번호</p>
-							<Input type="password" placeholder="" required />
+							<Input
+								type="password"
+								placeholder=""
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								required
+							/>
 							<p>비밀번호 재확인</p>
-							<Input type="password" placeholder="" required />
+							<Input
+								type="password"
+								placeholder=""
+								value={password2}
+								onChange={(e) => setPassword2(e.target.value)}
+								required
+							/>
 							<p>이름</p>
-							<Input type="text" placeholder="" required />
+							<Input
+								type="text"
+								placeholder=""
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								required
+							/>
 							<p>휴대폰번호</p>
 							<PhoneNumber>
 								<select
@@ -52,8 +163,16 @@ const SignUpBox = () => {
 										</option>
 									))}
 								</select>
-								<input type="text" />
-								<input type="text" />
+								<input
+									type="text"
+									value={middleDigit}
+									onChange={(e) => setMiddleDigit(e.target.value)}
+								/>
+								<input
+									type="text"
+									value={lastDigit}
+									onChange={(e) => setLastDigit(e.target.value)}
+								/>
 							</PhoneNumber>
 							<p>이메일</p>
 							<Email>
@@ -63,18 +182,54 @@ const SignUpBox = () => {
 							</Email>
 						</Form>
 					) : (
-						<Form action="/login" method="post">
+						<Form onSubmit={handleSubmit}>
 							<p>아이디</p>
 							<InpBtnGroup>
-								<input type="text" placeholder="" required />
-								<button>중복확인</button>
+								<input
+									type="text"
+									placeholder=""
+									value={username}
+									onChange={(e) => {
+										setUsername(e.target.value);
+										setIdValidationMessage(""); // 입력 시 메시지 초기화
+									}}
+									required
+									style={{
+										border:
+											messageColor === "var(--color-red)"
+												? "1px solid var(--color-red)"
+												: "1px solid var(--color-orange)", // 메시지 색상이 빨간색일 때 테두리 색상 변경
+									}}
+								/>
+								<button onClick={handleIdValidation}>중복확인</button>
 							</InpBtnGroup>
+							{idValidationMessage && (
+								<p style={{ color: messageColor }}>{idValidationMessage}</p>
+							)}
 							<p>비밀번호</p>
-							<Input type="password" placeholder="" required />
+							<Input
+								type="password"
+								placeholder=""
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								required
+							/>
 							<p>비밀번호 재확인</p>
-							<Input type="password" placeholder="" required />
+							<Input
+								type="password"
+								placeholder=""
+								value={password2}
+								onChange={(e) => setPassword2(e.target.value)}
+								required
+							/>
 							<p>이름</p>
-							<Input type="text" placeholder="" required />
+							<Input
+								type="text"
+								placeholder=""
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								required
+							/>
 							<p>휴대폰번호</p>
 							<PhoneNumber>
 								<select
@@ -87,8 +242,16 @@ const SignUpBox = () => {
 										</option>
 									))}
 								</select>
-								<input type="text" />
-								<input type="text" />
+								<input
+									type="text"
+									value={middleDigit}
+									onChange={(e) => setMiddleDigit(e.target.value)}
+								/>
+								<input
+									type="text"
+									value={lastDigit}
+									onChange={(e) => setLastDigit(e.target.value)}
+								/>
 							</PhoneNumber>
 							<p>이메일</p>
 							<Email>
@@ -108,7 +271,11 @@ const SignUpBox = () => {
 				</FormContainer>
 			</SignUpContainer>
 			<Terms>
-				<img src={iconCheckBox} alt="" />
+				<img
+					src={checked ? iconCheckFillBox : iconCheckBox}
+					alt=""
+					onClick={handleCheck}
+				/>
 				<p>
 					호두샵의 <u style={{ fontWeight: 700 }}>이용약관</u> 및{" "}
 					<u style={{ fontWeight: 700 }}>개인정보처리방침</u>에 대한 내용을
@@ -116,7 +283,9 @@ const SignUpBox = () => {
 				</p>
 			</Terms>
 			<Join>
-				<button>가입하기</button>
+				<button type="submit" onClick={handleSubmit}>
+					가입하기
+				</button>
 			</Join>
 		</>
 	);
@@ -205,6 +374,7 @@ const InpBtnGroup = styled.div`
 		height: 54px;
 		border: solid 1px var(--color-orange);
 		border-radius: 5px;
+		padding-left: 16px;
 	}
 
 	button {
@@ -224,6 +394,7 @@ const Input = styled.input`
 	border-radius: 5px;
 	margin-bottom: 12px;
 	font-size: 16px;
+	padding-left: 16px;
 `;
 
 const PhoneNumber = styled.div`
@@ -245,6 +416,7 @@ const PhoneNumber = styled.div`
 		border: solid 1px var(--color-orange);
 		border-radius: 5px;
 		font-size: 18px;
+		padding-left: 16px;
 	}
 `;
 
@@ -258,6 +430,7 @@ const Email = styled.div`
 		height: 54px;
 		border: solid 1px var(--color-orange);
 		border-radius: 5px;
+		padding-left: 16px;
 	}
 `;
 
