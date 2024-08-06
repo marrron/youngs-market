@@ -9,6 +9,7 @@ import plusBtn from "../assets/images/icon-plus-line.svg";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Modal from "../components/Modal";
+import Instruction from "../components/Instruction";
 
 export default function ProductDetail() {
   const navigate = useNavigate();
@@ -20,12 +21,22 @@ export default function ProductDetail() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTxt, setModalTxt] = useState("");
   const [inCartItem, setInCartItem] = useState([]);
+  const [showInstruction, setShowInstruction] = useState(false);
+
+  // 변수
+  const cartStock = selectedProduct.stock;
+  const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
 
   // 수량 증가 버튼
   const increaseQuantity = () => {
-    setQuantity((prevQuantity) =>
-      selectedProduct.stock > prevQuantity ? prevQuantity + 1 : prevQuantity
-    );
+    if (quantity < cartStock - cartQuantity) {
+      setQuantity((prevQuantity) => prevQuantity + 1);
+    } else {
+      setShowInstruction(true);
+      setTimeout(() => {
+        setShowInstruction(false);
+      }, 1500);
+    }
   };
 
   // 수량 감소 버튼
@@ -56,8 +67,6 @@ export default function ProductDetail() {
 
   // 장바구니 버튼 클릭
   const handleShoppingCartBtnClick = () => {
-    const cartStock = selectedProduct.stock;
-    const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
     console.log("cartStock", cartStock, "cartQuantity", cartQuantity);
 
     if (token) {
@@ -106,6 +115,13 @@ export default function ProductDetail() {
       })
       .then((data) => {
         console.log("shoppingCart", data);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+        setModalTxt(
+          "재고 수량이 부족하여\n장바구니에 담을 수 없습니다.\n장바구니로 이동하시겠습니까?"
+        );
+        openModal();
       });
   };
 
@@ -130,6 +146,8 @@ export default function ProductDetail() {
   return (
     <>
       {isModalOpen ? <Modal closeModal={closeModal} modalTxt={modalTxt} /> : ""}
+      {showInstruction && <Instruction />}
+      {cartStock === cartQuantity && <Instruction />}
       <Header />
       <MainStyle>
         <div className="product-image">
