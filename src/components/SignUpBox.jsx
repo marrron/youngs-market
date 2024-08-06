@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
+import soldout from "../assets/images/icon-soldout.svg";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
