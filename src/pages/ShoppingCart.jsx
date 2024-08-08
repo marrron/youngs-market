@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -10,9 +11,10 @@ import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
 
 export default function ShoppingCart() {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const { token } = useAuth();
-  const { products } = useProduct();
+  const { products, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
   const [totalAmount, setTotalAmount] = useState(0);
   const [productDiscount, _] = useState(0);
@@ -29,7 +31,6 @@ export default function ShoppingCart() {
     })
       .then((response) => response.json())
       .then((data) => {
-        // console.log(data.results);
         setCartItems(data.results || []);
       });
   };
@@ -39,7 +40,12 @@ export default function ShoppingCart() {
   }, []);
 
   console.log(products);
-  console.log(cartItems, cartItemsIntersection);
+  console.log(
+    "cartItems",
+    cartItems,
+    "cartItemsIntersection",
+    cartItemsIntersection
+  );
 
   // 장바구니 목록 display
   useEffect(() => {
@@ -79,6 +85,12 @@ export default function ShoppingCart() {
     setTotalAmount(total);
   }, [cartItemsIntersection]);
 
+  // 상품 이미지 클릭하면 상세페이지로 이동
+  const goProductDetailPage = (item) => {
+    setSelectedProduct(item);
+    navigate(`/productdetail/${item.product_id}`);
+  };
+
   return (
     <>
       <Header />
@@ -104,7 +116,12 @@ export default function ShoppingCart() {
                       <input type="radio" id={id} name="cart-item-id" />
                       <label htmlFor={id}></label>
                     </div>
-                    <button type="button">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        goProductDetailPage(item);
+                      }}
+                    >
                       <img src={item.image} alt="상품이미지" />
                     </button>
                     <div>
