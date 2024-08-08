@@ -146,7 +146,7 @@ export default function ProductDetail() {
   return (
     <>
       {isModalOpen ? <Modal closeModal={closeModal} modalTxt={modalTxt} /> : ""}
-      {showInstruction && <Instruction />}
+      {showInstruction && token && <Instruction />}
       {cartStock === cartQuantity && <Instruction />}
       <Header />
       <MainStyle>
