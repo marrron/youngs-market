@@ -26,8 +26,7 @@ export default function ProductDetail() {
   // 변수
   const cartStock = selectedProduct.stock;
   const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
-
-  console.log(inCartItem, "inCartItem");
+  console.log(selectedProduct);
 
   // 수량 증가 버튼
   const increaseQuantity = () => {
@@ -102,15 +101,7 @@ export default function ProductDetail() {
           </>
         );
         openModal();
-      } else if (cartStock == cartQuantity) {
-        setModalTxt(
-          <>
-            재고 수량이 부족하여 <br />
-            장바구니에 담을 수 없습니다. <br />
-            장바구니로 이동하시겠습니까?
-          </>
-        );
-        openModal();
+        putInShoppingCart();
       }
     } else {
       openModal();
