@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -8,15 +9,23 @@ import deleteBtn from "../assets/images/icon-delete.svg";
 import { useAuth } from "../context/AuthContext";
 import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
+import Modal from "../components/Modal";
+import QuantityControl from "../components/QuantityControl";
 
 export default function ShoppingCart() {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const { token } = useAuth();
-  const { products } = useProduct();
+  const { products, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
   const [totalAmount, setTotalAmount] = useState(0);
-  const [productDiscount, _] = useState(0);
-  const [deliveryFee, __] = useState(0);
+  const [productDiscount] = useState(0);
+  const [deliveryFee] = useState(0);
+  const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTxt, setModalTxt] = useState("");
+  const [leftBtnText, setLeftBtnText] = useState("");
+  const [rightBtnText, setRightBtnText] = useState("");
 
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
@@ -29,7 +38,6 @@ export default function ShoppingCart() {
     })
       .then((response) => response.json())
       .then((data) => {
-        // console.log(data.results);
         setCartItems(data.results || []);
       });
   };
@@ -38,12 +46,18 @@ export default function ShoppingCart() {
     getShoppingCartItems();
   }, []);
 
-  console.log(products);
-  console.log(cartItems, cartItemsIntersection);
+  console.log(
+    "products",
+    products,
+    "cartItems",
+    cartItems,
+    "cartItemsIntersection",
+    cartItemsIntersection
+  );
 
   // 장바구니 목록 display
   useEffect(() => {
-    if (products.length > 0 && cartItems.length > 0) {
+    if (products.length > 0) {
       const intersection = products
         .filter((item) =>
           cartItems.some((product) => product.product_id === item.product_id)
@@ -79,21 +93,84 @@ export default function ShoppingCart() {
     setTotalAmount(total);
   }, [cartItemsIntersection]);
 
+  // 상품 이미지 클릭하면 상세페이지로 이동
+  const goProductDetailPage = (item) => {
+    setSelectedProduct(item);
+    navigate(`/productdetail/${item.product_id}`);
+  };
+
+  // select-all 체크박스 클릭 이벤트
+  const handleSelectAll = () => {
+    if (selectedCartItemIds.length === cartItemsIntersection.length) {
+      setSelectedCartItemIds([]);
+    } else {
+      setSelectedCartItemIds(
+        cartItemsIntersection.map((item) => item.cart_item_id)
+      );
+    }
+  };
+
+  // 개별 체크박스 클릭 이벤트
+  const handleSelect = (cartItemId) => {
+    setSelectedCartItemIds((prevSelected) =>
+      prevSelected.includes(cartItemId)
+        ? prevSelected.filter((id) => id !== cartItemId)
+        : [...prevSelected, cartItemId]
+    );
+  };
+
+  // 모달버튼 클릭
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  console.log(selectedCartItemIds, leftBtnText, rightBtnText);
+
+  useEffect(() => {
+    console.log("Products:", products);
+    console.log("Cart Items:", cartItems);
+  }, [products, cartItems]);
+
+  useEffect(() => {
+    console.log("Cart Items Intersection:", cartItemsIntersection);
+  }, [cartItemsIntersection]);
+
   return (
     <>
+      {isModalOpen ? (
+        <Modal
+          closeModal={closeModal}
+          modalTxt={modalTxt}
+          leftBtnText={leftBtnText}
+          rightBtnText={rightBtnText}
+        />
+      ) : (
+        ""
+      )}
       <Header />
       <MainStyle>
         <h2>장바구니</h2>
         <ProductDetailStyle>
           <div>
-            <input type="radio" id="select-all" />
+            <input
+              type="checkbox"
+              id="select-all"
+              checked={
+                selectedCartItemIds.length === cartItemsIntersection.length
+              }
+              onChange={handleSelectAll}
+            />
             <label htmlFor="select-all"></label>
           </div>
           <span>상품정보</span>
           <span>수량</span>
           <span>상품금액</span>
         </ProductDetailStyle>
-        {token ? (
+        {token && cartItemsIntersection.length > 0 ? (
           <>
             <ShoppingCartStyle>
               {cartItemsIntersection.map((item) => {
@@ -101,10 +178,23 @@ export default function ShoppingCart() {
                 return (
                   <CartItemStyle key={item.product_id}>
                     <div>
-                      <input type="radio" id={id} name="cart-item-id" />
+                      <input
+                        type="checkbox"
+                        id={id}
+                        name={item.cart_item_id}
+                        checked={selectedCartItemIds.includes(
+                          item.cart_item_id
+                        )}
+                        onChange={() => handleSelect(item.cart_item_id)}
+                      />
                       <label htmlFor={id}></label>
                     </div>
-                    <button type="button">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        goProductDetailPage(item);
+                      }}
+                    >
                       <img src={item.image} alt="상품이미지" />
                     </button>
                     <div>
@@ -115,7 +205,17 @@ export default function ShoppingCart() {
                         택배배송<span>/</span>무료배송
                       </p>
                     </div>
-                    <div>
+                    <div
+                      onClick={() => {
+                        openModal(
+                          setLeftBtnText("취소"),
+                          setRightBtnText("수정"),
+                          setModalTxt(
+                            <QuantityControl quantity={item.quantity} />
+                          )
+                        );
+                      }}
+                    >
                       <button type="button">
                         <img src={iconMinus} alt="수량감소버튼" />
                       </button>
@@ -130,7 +230,16 @@ export default function ShoppingCart() {
                       </strong>
                       <button type="button">주문하기</button>
                     </div>
-                    <DeleteBtnStyle type="button">
+                    <DeleteBtnStyle
+                      onClick={() => {
+                        openModal(
+                          setLeftBtnText("취소"),
+                          setRightBtnText("확인"),
+                          setModalTxt("상품을 삭제하시겠습니까?")
+                        );
+                      }}
+                      type="button"
+                    >
                       <img src={deleteBtn} alt="삭제버튼" />
                     </DeleteBtnStyle>
                   </CartItemStyle>
@@ -204,7 +313,7 @@ const ProductDetailStyle = styled.div`
     display: flex;
     align-items: center;
 
-    input[type="radio"] {
+    input[type="checkbox"] {
       display: none;
     }
 
@@ -227,7 +336,7 @@ const ProductDetailStyle = styled.div`
       }
     }
 
-    input[type="radio"]:checked + label::after {
+    input[type="checkbox"]:checked + label::after {
       content: "";
       position: absolute;
       left: 5px;
@@ -264,7 +373,8 @@ const CartItemStyle = styled.div`
 
   div:nth-of-type(1) {
     align-self: center;
-    input[type="radio"] {
+
+    input[type="checkbox"] {
       display: none;
     }
 
@@ -287,7 +397,7 @@ const CartItemStyle = styled.div`
       }
     }
 
-    input[type="radio"]:checked + label::after {
+    input[type="checkbox"]:checked + label::after {
       content: "";
       position: absolute;
       left: 5px;

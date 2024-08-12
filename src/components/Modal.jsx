@@ -4,7 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import styled from "styled-components";
 import deleteBtn from "../assets/images/icon-delete.svg";
 
-export default function Modal({ closeModal, modalTxt }) {
+export default function Modal({
+  closeModal,
+  modalTxt,
+  leftBtnText = "아니오",
+  rightBtnText = "예",
+}) {
   const navigate = useNavigate();
   const { token } = useAuth();
 
@@ -19,20 +24,21 @@ export default function Modal({ closeModal, modalTxt }) {
   return (
     <ModalBgStyle>
       <ModalStyle>
-        <div>
-          {modalTxt.split("\n").map((line, index) => (
-            <p key={index}>{line}</p>
-          ))}
-        </div>
+        <ModalTxt>{modalTxt}</ModalTxt>
         <AnswerActionStyle>
           <button type="button" onClick={closeModal}>
-            아니오
+            {leftBtnText}
           </button>
           <button type="button" onClick={handleRightBtnClick}>
-            예
+            {rightBtnText}
           </button>
         </AnswerActionStyle>
-        <CloseButton type="button" onClick={closeModal}>
+        <CloseButton
+          type="button"
+          onClick={() => {
+            closeModal();
+          }}
+        >
           <img src={deleteBtn} alt="닫기버튼" />
         </CloseButton>
       </ModalStyle>
@@ -70,6 +76,10 @@ const ModalStyle = styled.div`
     font-size: 16px;
     line-height: 20px;
   }
+`;
+
+const ModalTxt = styled.div`
+  line-height: 20px;
 `;
 
 const AnswerActionStyle = styled.div`

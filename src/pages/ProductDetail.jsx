@@ -26,6 +26,7 @@ export default function ProductDetail() {
   // 변수
   const cartStock = selectedProduct.stock;
   const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
+  console.log(selectedProduct);
 
   // 수량 증가 버튼
   const increaseQuantity = () => {
@@ -67,29 +68,50 @@ export default function ProductDetail() {
 
   // 장바구니 버튼 클릭
   const handleShoppingCartBtnClick = () => {
-    console.log("cartStock", cartStock, "cartQuantity", cartQuantity);
+    console.log(
+      "cartStock",
+      cartStock,
+      "cartQuantity",
+      cartQuantity,
+      "quantity",
+      quantity,
+      "inCartItem",
+      inCartItem,
+      "cartItemsIntersection",
+      cartItemsIntersection
+    );
 
     if (token) {
-      if (inCartItem.length > 0 && cartStock >= cartQuantity + quantity) {
+      if (cartQuantity == 0) {
         setModalTxt(
-          "이미 장바구니에 있는 상품입니다.\n장바구니로 이동하시겠습니까?"
+          <>
+            장바구니에 상품을 담았습니다.
+            <br />
+            장바구니로 이동하시겠습니까?
+          </>
         );
         openModal();
-      } else if (inCartItem.length > 0 && cartStock < cartQuantity + quantity) {
+        putInShoppingCart();
+      } else if (cartQuantity > 0) {
         setModalTxt(
-          "재고 수량이 부족하여\n장바구니에 담을 수 없습니다.\n장바구니로 이동하시겠습니까?"
-        );
-        openModal();
-      } else {
-        setModalTxt(
-          "장바구니에 상품을 담았습니다.\n장바구니로 이동하시겠습니까?"
+          <>
+            이미 장바구니에 있는 상품입니다.
+            <br />
+            장바구니로 이동하시겠습니까?
+          </>
         );
         openModal();
         putInShoppingCart();
       }
     } else {
       openModal();
-      setModalTxt("로그인이 필요한 서비스입니다.\n로그인하시겠습니까?");
+      setModalTxt(
+        <>
+          로그인이 필요한 서비스입니다.
+          <br />
+          로그인하시겠습니까?
+        </>
+      );
     }
   };
 
@@ -115,15 +137,22 @@ export default function ProductDetail() {
       })
       .then((data) => {
         console.log("shoppingCart", data);
+        setInCartItem([data]);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
         setModalTxt(
-          "재고 수량이 부족하여\n장바구니에 담을 수 없습니다.\n장바구니로 이동하시겠습니까?"
+          <>
+            재고 수량이 부족하여 <br />
+            장바구니에 담을 수 없습니다. <br />
+            장바구니로 이동하시겠습니까?
+          </>
         );
         openModal();
       });
   };
+
+  console.log(inCartItem);
 
   useEffect(() => {
     const filteredCartItem = cartItemsIntersection.filter(
@@ -139,14 +168,20 @@ export default function ProductDetail() {
       navigate("/order");
     } else {
       openModal();
-      setModalTxt("로그인이 필요한 서비스입니다.\n로그인하시겠습니까?");
+      setModalTxt(
+        <>
+          로그인이 필요한 서비스입니다.
+          <br />
+          로그인하시겠습니까?
+        </>
+      );
     }
   };
 
   return (
     <>
       {isModalOpen ? <Modal closeModal={closeModal} modalTxt={modalTxt} /> : ""}
-      {showInstruction && <Instruction />}
+      {showInstruction && token && <Instruction />}
       {cartStock === cartQuantity && <Instruction />}
       <Header />
       <MainStyle>
