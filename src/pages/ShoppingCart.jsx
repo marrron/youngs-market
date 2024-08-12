@@ -9,6 +9,8 @@ import deleteBtn from "../assets/images/icon-delete.svg";
 import { useAuth } from "../context/AuthContext";
 import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
+import Modal from "../components/Modal";
+import QuantityControl from "../components/QuantityControl";
 
 export default function ShoppingCart() {
   const navigate = useNavigate();
@@ -17,9 +19,13 @@ export default function ShoppingCart() {
   const { products, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
   const [totalAmount, setTotalAmount] = useState(0);
-  const [productDiscount, _] = useState(0);
-  const [deliveryFee, __] = useState(0);
+  const [productDiscount] = useState(0);
+  const [deliveryFee] = useState(0);
   const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTxt, setModalTxt] = useState("");
+  const [leftBtnText, setLeftBtnText] = useState("");
+  const [rightBtnText, setRightBtnText] = useState("");
 
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
@@ -40,8 +46,9 @@ export default function ShoppingCart() {
     getShoppingCartItems();
   }, []);
 
-  console.log(products);
   console.log(
+    "products",
+    products,
     "cartItems",
     cartItems,
     "cartItemsIntersection",
@@ -50,7 +57,7 @@ export default function ShoppingCart() {
 
   // 장바구니 목록 display
   useEffect(() => {
-    if (products.length > 0 && cartItems.length > 0) {
+    if (products.length > 0) {
       const intersection = products
         .filter((item) =>
           cartItems.some((product) => product.product_id === item.product_id)
@@ -112,10 +119,38 @@ export default function ShoppingCart() {
     );
   };
 
-  console.log(selectedCartItemIds);
+  // 모달버튼 클릭
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  console.log(selectedCartItemIds, leftBtnText, rightBtnText);
+
+  useEffect(() => {
+    console.log("Products:", products);
+    console.log("Cart Items:", cartItems);
+  }, [products, cartItems]);
+
+  useEffect(() => {
+    console.log("Cart Items Intersection:", cartItemsIntersection);
+  }, [cartItemsIntersection]);
 
   return (
     <>
+      {isModalOpen ? (
+        <Modal
+          closeModal={closeModal}
+          modalTxt={modalTxt}
+          leftBtnText={leftBtnText}
+          rightBtnText={rightBtnText}
+        />
+      ) : (
+        ""
+      )}
       <Header />
       <MainStyle>
         <h2>장바구니</h2>
@@ -135,7 +170,7 @@ export default function ShoppingCart() {
           <span>수량</span>
           <span>상품금액</span>
         </ProductDetailStyle>
-        {token ? (
+        {token && cartItemsIntersection.length > 0 ? (
           <>
             <ShoppingCartStyle>
               {cartItemsIntersection.map((item) => {
@@ -170,7 +205,17 @@ export default function ShoppingCart() {
                         택배배송<span>/</span>무료배송
                       </p>
                     </div>
-                    <div>
+                    <div
+                      onClick={() => {
+                        openModal(
+                          setLeftBtnText("취소"),
+                          setRightBtnText("수정"),
+                          setModalTxt(
+                            <QuantityControl quantity={item.quantity} />
+                          )
+                        );
+                      }}
+                    >
                       <button type="button">
                         <img src={iconMinus} alt="수량감소버튼" />
                       </button>
@@ -185,7 +230,16 @@ export default function ShoppingCart() {
                       </strong>
                       <button type="button">주문하기</button>
                     </div>
-                    <DeleteBtnStyle type="button">
+                    <DeleteBtnStyle
+                      onClick={() => {
+                        openModal(
+                          setLeftBtnText("취소"),
+                          setRightBtnText("확인"),
+                          setModalTxt("상품을 삭제하시겠습니까?")
+                        );
+                      }}
+                      type="button"
+                    >
                       <img src={deleteBtn} alt="삭제버튼" />
                     </DeleteBtnStyle>
                   </CartItemStyle>
