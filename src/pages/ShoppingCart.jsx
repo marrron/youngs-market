@@ -19,6 +19,7 @@ export default function ShoppingCart() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [productDiscount, _] = useState(0);
   const [deliveryFee, __] = useState(0);
+  const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
 
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
@@ -91,6 +92,28 @@ export default function ShoppingCart() {
     navigate(`/productdetail/${item.product_id}`);
   };
 
+  // select-all 체크박스 클릭 이벤트
+  const handleSelectAll = () => {
+    if (selectedCartItemIds.length === cartItemsIntersection.length) {
+      setSelectedCartItemIds([]);
+    } else {
+      setSelectedCartItemIds(
+        cartItemsIntersection.map((item) => item.cart_item_id)
+      );
+    }
+  };
+
+  // 개별 체크박스 클릭 이벤트
+  const handleSelect = (cartItemId) => {
+    setSelectedCartItemIds((prevSelected) =>
+      prevSelected.includes(cartItemId)
+        ? prevSelected.filter((id) => id !== cartItemId)
+        : [...prevSelected, cartItemId]
+    );
+  };
+
+  console.log(selectedCartItemIds);
+
   return (
     <>
       <Header />
@@ -98,7 +121,14 @@ export default function ShoppingCart() {
         <h2>장바구니</h2>
         <ProductDetailStyle>
           <div>
-            <input type="radio" id="select-all" />
+            <input
+              type="checkbox"
+              id="select-all"
+              checked={
+                selectedCartItemIds.length === cartItemsIntersection.length
+              }
+              onChange={handleSelectAll}
+            />
             <label htmlFor="select-all"></label>
           </div>
           <span>상품정보</span>
@@ -113,7 +143,15 @@ export default function ShoppingCart() {
                 return (
                   <CartItemStyle key={item.product_id}>
                     <div>
-                      <input type="radio" id={id} name="cart-item-id" />
+                      <input
+                        type="checkbox"
+                        id={id}
+                        name={item.cart_item_id}
+                        checked={selectedCartItemIds.includes(
+                          item.cart_item_id
+                        )}
+                        onChange={() => handleSelect(item.cart_item_id)}
+                      />
                       <label htmlFor={id}></label>
                     </div>
                     <button
@@ -221,7 +259,7 @@ const ProductDetailStyle = styled.div`
     display: flex;
     align-items: center;
 
-    input[type="radio"] {
+    input[type="checkbox"] {
       display: none;
     }
 
@@ -244,7 +282,7 @@ const ProductDetailStyle = styled.div`
       }
     }
 
-    input[type="radio"]:checked + label::after {
+    input[type="checkbox"]:checked + label::after {
       content: "";
       position: absolute;
       left: 5px;
@@ -281,7 +319,8 @@ const CartItemStyle = styled.div`
 
   div:nth-of-type(1) {
     align-self: center;
-    input[type="radio"] {
+
+    input[type="checkbox"] {
       display: none;
     }
 
@@ -304,7 +343,7 @@ const CartItemStyle = styled.div`
       }
     }
 
-    input[type="radio"]:checked + label::after {
+    input[type="checkbox"]:checked + label::after {
       content: "";
       position: absolute;
       left: 5px;
