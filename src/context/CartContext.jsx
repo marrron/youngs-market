@@ -4,15 +4,18 @@ const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cartItemsIntersection, setCartItemsIntersection] = useState(() => {
-    const savedCartItems = localStorage.getItem("cartItems");
+    const savedCartItems = localStorage.getItem("cartItemsIntersection");
     return savedCartItems ? JSON.parse(savedCartItems) : [];
   });
 
   useEffect(() => {
     if (cartItemsIntersection.length > 0) {
-      localStorage.setItem("cartItems", JSON.stringify(cartItemsIntersection));
+      localStorage.setItem(
+        "cartItemsIntersection",
+        JSON.stringify(cartItemsIntersection)
+      );
     } else {
-      localStorage.removeItem("cartItems");
+      localStorage.removeItem("cartItemsIntersection");
     }
   }, [cartItemsIntersection]);
 
