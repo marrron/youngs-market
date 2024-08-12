@@ -4,7 +4,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
-import soldout from "../assets/images/icon-soldout.svg";
+import iconCheckOff from "../assets/images/icon-check-off.svg";
+import iconCheckOn from "../assets/images/icon-check-on.svg";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
@@ -12,7 +13,6 @@ const SignUpBox = () => {
 	const [password, setPassword] = useState("");
 	const [password2, setPassword2] = useState("");
 	const [name, setName] = useState("");
-	const [phoneNumber, setPhoneNumber] = useState("");
 	const [firstDigit, setFirstDigit] = useState("010");
 	const [middleDigit, setMiddleDigit] = useState("");
 	const [lastDigit, setLastDigit] = useState("");
@@ -20,6 +20,10 @@ const SignUpBox = () => {
 	const [idValidationMessage, setIdValidationMessage] = useState("");
 	const [messageColor, setMessageColor] = useState("");
 	const [checked, setChecked] = useState(false);
+	const [isValidationPassword, setIsValidationPassword] = useState(false);
+	const [passwordMatchMessage, setPasswordMatchMessage] = useState("");
+	const [selectDigits, setSelectDigits] = useState("010");
+	const [isOpen, setIsOpen] = useState(false);
 
 	const navigate = useNavigate();
 
@@ -30,20 +34,22 @@ const SignUpBox = () => {
 	};
 
 	const handleSubmit = (event) => {
-		event.preventDefault(); // 폼 제출 방지
+		event.preventDefault();
+
+		const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
 
 		const AuthData = {
 			username,
 			password,
 			password2,
-			phone_number: `${firstDigit}-${middleDigit}-${lastDigit}`,
+			phone_number,
 			name,
 		};
 
 		axios
-			.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData) // 회원가입 API 호출
+			.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData)
 			.then((response) => {
-				console.log("회원가입 성공:", response.data); // 성공 시 응답 데이터 출력
+				console.log("회원가입 성공:", response.data);
 				navigate("/");
 			})
 			.catch((error) => {
@@ -91,6 +97,50 @@ const SignUpBox = () => {
 		setChecked(!checked);
 	};
 
+	const handlePasswordValidation = (password) => {
+		const minLenth = password.length >= 8;
+		const lowerCase = /[a-z]/.test(password);
+		const minNumber = /\d/.test(password);
+
+		if (minLenth && lowerCase && minNumber) {
+			setIsValidationPassword(true);
+		} else {
+			setIsValidationPassword(false);
+		}
+	};
+
+	const comparePassword = (e) => {
+		const value = e.target.value;
+		setPassword2(value);
+
+		if (value !== password) {
+			setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
+		} else {
+			setPasswordMatchMessage("");
+		}
+	};
+
+	const toggleDropdown = () => {
+		setIsOpen(!isOpen);
+	};
+
+	const handleDigitClick = (option) => {
+		setSelectDigits(option);
+		setIsOpen(false);
+	};
+
+	const isButtonEnabled = () => {
+		const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
+		return (
+			username &&
+			password &&
+			password2 &&
+			name &&
+			phone_number.length === 11 &&
+			checked
+		);
+	};
+
 	return (
 		<>
 			<TabContainer>
@@ -113,14 +163,14 @@ const SignUpBox = () => {
 									value={username}
 									onChange={(e) => {
 										setUsername(e.target.value);
-										setIdValidationMessage(""); // 입력 시 메시지 초기화
+										setIdValidationMessage("");
 									}}
 									required
 									style={{
 										border:
 											messageColor === "var(--color-red)"
 												? "1px solid var(--color-red)"
-												: "1px solid var(--color-orange)", // 메시지 색상이 빨간색일 때 테두리 색상 변경
+												: "1px solid var(--color-orange)",
 									}}
 								/>
 								<button onClick={handleIdValidation}>중복확인</button>
@@ -129,21 +179,39 @@ const SignUpBox = () => {
 								<p style={{ color: messageColor }}>{idValidationMessage}</p>
 							)}
 							<p>비밀번호</p>
-							<Input
-								type="password"
-								placeholder=""
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								required
-							/>
+							<PasswordContainer>
+								<Input
+									type="password"
+									placeholder=""
+									value={password}
+									onChange={(e) => {
+										setPassword(e.target.value);
+										handlePasswordValidation(e.target.value);
+									}}
+									required
+								/>
+								{isValidationPassword && <img src={iconCheckOn} alt="" />}
+							</PasswordContainer>
 							<p>비밀번호 재확인</p>
-							<Input
-								type="password"
-								placeholder=""
-								value={password2}
-								onChange={(e) => setPassword2(e.target.value)}
-								required
-							/>
+							<PasswordContainer>
+								<Input
+									type="password"
+									placeholder=""
+									value={password2}
+									onChange={comparePassword}
+									required
+									style={{
+										border: passwordMatchMessage
+											? "1px solid var(--color-red)"
+											: "1px solid var(--color-orange)",
+									}}
+								/>
+							</PasswordContainer>
+							{passwordMatchMessage && (
+								<p style={{ color: "var(--color-red)" }}>
+									{passwordMatchMessage}
+								</p>
+							)}
 							<p>이름</p>
 							<Input
 								type="text"
@@ -154,25 +222,45 @@ const SignUpBox = () => {
 							/>
 							<p>휴대폰번호</p>
 							<PhoneNumber>
-								<select
-									value={firstDigit}
-									onChange={(e) => setFirstDigit(e.target.value)}
-								>
-									{firstDigits.map((code) => (
-										<option key={code} value={code}>
-											{code}
-										</option>
-									))}
-								</select>
+								<SelectNumber>
+									<div onClick={toggleDropdown}>{selectDigits}</div>
+									{isOpen && (
+										<ul>
+											{firstDigits.map((option, index) => (
+												<li
+													key={index}
+													onClick={() => handleDigitClick(option)}
+													style={{
+														padding: "10px",
+														cursor: "pointer",
+														textAlign: "center",
+													}}
+												>
+													{option}
+												</li>
+											))}
+										</ul>
+									)}
+								</SelectNumber>
 								<input
 									type="text"
 									value={middleDigit}
-									onChange={(e) => setMiddleDigit(e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value;
+										if (/^\d*$/.test(value) && value.length <= 4) {
+											setMiddleDigit(value);
+										}
+									}}
 								/>
 								<input
 									type="text"
 									value={lastDigit}
-									onChange={(e) => setLastDigit(e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value;
+										if (/^\d*$/.test(value) && value.length <= 4) {
+											setLastDigit(value);
+										}
+									}}
 								/>
 							</PhoneNumber>
 							<p>이메일</p>
@@ -192,14 +280,14 @@ const SignUpBox = () => {
 									value={username}
 									onChange={(e) => {
 										setUsername(e.target.value);
-										setIdValidationMessage(""); // 입력 시 메시지 초기화
+										setIdValidationMessage("");
 									}}
 									required
 									style={{
 										border:
 											messageColor === "var(--color-red)"
 												? "1px solid var(--color-red)"
-												: "1px solid var(--color-orange)", // 메시지 색상이 빨간색일 때 테두리 색상 변경
+												: "1px solid var(--color-orange)",
 									}}
 								/>
 								<button onClick={handleIdValidation}>중복확인</button>
@@ -284,7 +372,15 @@ const SignUpBox = () => {
 				</p>
 			</Terms>
 			<Join>
-				<button type="submit" onClick={handleSubmit}>
+				<button
+					type="submit"
+					onClick={handleSubmit}
+					style={{
+						backgroundColor: isButtonEnabled()
+							? "var(--color-maroon)"
+							: "var(--color-orange)",
+					}}
+				>
 					가입하기
 				</button>
 			</Join>
@@ -304,7 +400,6 @@ const SignUpContainer = styled.div`
 	border-radius: 0px 0px 10px 10px;
 	border: 1px solid var(--color-orange);
 	border-top: 0px;
-	overflow: hidden;
 	position: relative;
 	z-index: 0;
 `;
@@ -339,6 +434,7 @@ const FormContainer = styled.div`
 	padding-left: 35px;
 	padding-right: 35px;
 	padding-bottom: 36px;
+	position: relative;
 `;
 
 const Form = styled.form`
@@ -396,6 +492,18 @@ const Input = styled.input`
 	margin-bottom: 12px;
 	font-size: 16px;
 	padding-left: 16px;
+`;
+
+const PasswordContainer = styled.div`
+	position: relative;
+
+	img {
+		position: absolute;
+		top: 13px;
+		right: 16px;
+		width: 28px;
+		height: 28px;
+	}
 `;
 
 const PhoneNumber = styled.div`
@@ -462,6 +570,34 @@ const Join = styled.div`
 		color: var(--color-white);
 		font-size: 18px;
 		margin-bottom: 110px;
+	}
+`;
+
+const SelectNumber = styled.div`
+	div {
+		width: 152px;
+		height: 54px;
+		border: 1px solid var(--color-orange);
+		border-radius: 5px;
+		cursor: pointer;
+		font-size: 16px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+	}
+	ul {
+		list-style-type: none;
+		padding: 0;
+		margin: 0;
+		border: 1px solid var(--color-orange);
+		max-height: 150px;
+		overflow-y: auto;
+		border-radius: 5px;
+		position: absolute;
+		width: 152px;
+		background-color: #fff;
+		top: 80%;
 	}
 `;
 
