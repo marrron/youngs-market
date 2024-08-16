@@ -160,7 +160,8 @@ export default function ShoppingCart() {
               type="checkbox"
               id="select-all"
               checked={
-                selectedCartItemIds.length === cartItemsIntersection.length
+                selectedCartItemIds.length === cartItemsIntersection.length &&
+                cartItemsIntersection.length > 0
               }
               onChange={handleSelectAll}
             />
