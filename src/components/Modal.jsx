@@ -9,11 +9,12 @@ export default function Modal({
   modalTxt,
   leftBtnText = "아니오",
   rightBtnText = "예",
+  handleRightBtnClick,
 }) {
   const navigate = useNavigate();
   const { token } = useAuth();
 
-  const handleRightBtnClick = () => {
+  const defaultHandleRightBtnClick = () => {
     if (!token) {
       navigate("/login");
     } else {
@@ -29,7 +30,10 @@ export default function Modal({
           <button type="button" onClick={closeModal}>
             {leftBtnText}
           </button>
-          <button type="button" onClick={handleRightBtnClick}>
+          <button
+            type="button"
+            onClick={handleRightBtnClick || defaultHandleRightBtnClick}
+          >
             {rightBtnText}
           </button>
         </AnswerActionStyle>

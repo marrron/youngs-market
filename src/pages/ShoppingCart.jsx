@@ -26,7 +26,7 @@ export default function ShoppingCart() {
   const [modalTxt, setModalTxt] = useState("");
   const [leftBtnText, setLeftBtnText] = useState("");
   const [rightBtnText, setRightBtnText] = useState("");
-
+  const [deleteCartItemId, setDeleteCartItemId] = useState(null);
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
     fetch("https://openmarket.weniv.co.kr/cart/", {
@@ -120,12 +120,17 @@ export default function ShoppingCart() {
   };
 
   // 모달버튼 클릭
-  const openModal = () => {
+  const openModal = (cartItemId, leftBtnText, rightBtnText, modalTxt) => {
     setIsModalOpen(true);
+    setDeleteCartItemId(cartItemId);
+    setLeftBtnText(leftBtnText);
+    setRightBtnText(rightBtnText);
+    setModalTxt(modalTxt);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setDeleteCartItemId(null);
   };
 
   console.log(selectedCartItemIds, leftBtnText, rightBtnText);
@@ -139,6 +144,30 @@ export default function ShoppingCart() {
     console.log("Cart Items Intersection:", cartItemsIntersection);
   }, [cartItemsIntersection]);
 
+  // 장바구니 개별 삭제하기
+  const individualDeleteCartItems = (cartItemId) => {
+    fetch(`https://openmarket.weniv.co.kr/cart/${cartItemId}/`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then((data) => {
+        console.log("Deleted from cart", data);
+        window.location.reload();
+        closeModal();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
   return (
     <>
       {isModalOpen ? (
@@ -147,6 +176,9 @@ export default function ShoppingCart() {
           modalTxt={modalTxt}
           leftBtnText={leftBtnText}
           rightBtnText={rightBtnText}
+          handleRightBtnClick={() =>
+            individualDeleteCartItems(deleteCartItemId)
+          }
         />
       ) : (
         ""
@@ -209,11 +241,10 @@ export default function ShoppingCart() {
                     <div
                       onClick={() => {
                         openModal(
-                          setLeftBtnText("취소"),
-                          setRightBtnText("수정"),
-                          setModalTxt(
-                            <QuantityControl quantity={item.quantity} />
-                          )
+                          null,
+                          "취소",
+                          "수정",
+                          <QuantityControl quantity={item.quantity} />
                         );
                       }}
                     >
@@ -232,13 +263,14 @@ export default function ShoppingCart() {
                       <button type="button">주문하기</button>
                     </div>
                     <DeleteBtnStyle
-                      onClick={() => {
+                      onClick={() =>
                         openModal(
-                          setLeftBtnText("취소"),
-                          setRightBtnText("확인"),
-                          setModalTxt("상품을 삭제하시겠습니까?")
-                        );
-                      }}
+                          item.cart_item_id,
+                          "취소",
+                          "삭제",
+                          "선택하신 상품을 삭제하시겠습니까?"
+                        )
+                      }
                       type="button"
                     >
                       <img src={deleteBtn} alt="삭제버튼" />
