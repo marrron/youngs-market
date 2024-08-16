@@ -9,7 +9,9 @@ export default function Modal({
   modalTxt,
   leftBtnText = "아니오",
   rightBtnText = "예",
-  handleRightBtnClick,
+  selectedCartItemIds = [],
+  handleRightBtnClick = () => {},
+  handleCheckBtnClick,
 }) {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -32,7 +34,13 @@ export default function Modal({
           </button>
           <button
             type="button"
-            onClick={handleRightBtnClick || defaultHandleRightBtnClick}
+            onClick={() => {
+              if (selectedCartItemIds.length > 0) {
+                handleCheckBtnClick();
+              } else {
+                handleRightBtnClick() || defaultHandleRightBtnClick();
+              }
+            }}
           >
             {rightBtnText}
           </button>

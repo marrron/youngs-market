@@ -27,6 +27,7 @@ export default function ShoppingCart() {
   const [leftBtnText, setLeftBtnText] = useState("");
   const [rightBtnText, setRightBtnText] = useState("");
   const [deleteCartItemId, setDeleteCartItemId] = useState(null);
+
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
     fetch("https://openmarket.weniv.co.kr/cart/", {
@@ -126,6 +127,7 @@ export default function ShoppingCart() {
     setLeftBtnText(leftBtnText);
     setRightBtnText(rightBtnText);
     setModalTxt(modalTxt);
+    setSelectedCartItemIds([]);
   };
 
   const closeModal = () => {
@@ -160,12 +162,20 @@ export default function ShoppingCart() {
       })
       .then((data) => {
         console.log("Deleted from cart", data);
-        window.location.reload();
+        getShoppingCartItems();
+        setSelectedCartItemIds([]);
         closeModal();
       })
       .catch((error) => {
         console.error("Error:", error);
       });
+  };
+
+  // 장바구니 선택 삭제하기
+  const deleteSelectedCartItems = () => {
+    selectedCartItemIds.forEach((cartItemId) => {
+      individualDeleteCartItems(cartItemId);
+    });
   };
 
   return (
@@ -176,9 +186,11 @@ export default function ShoppingCart() {
           modalTxt={modalTxt}
           leftBtnText={leftBtnText}
           rightBtnText={rightBtnText}
+          selectedCartItemIds={selectedCartItemIds}
           handleRightBtnClick={() =>
             individualDeleteCartItems(deleteCartItemId)
           }
+          handleCheckBtnClick={() => deleteSelectedCartItems()}
         />
       ) : (
         ""
@@ -306,7 +318,19 @@ export default function ShoppingCart() {
               </PaymentAmountCalculationStyle>
               <FinalActionsStyle>
                 <button type="button">주문하기</button>
-                <button type="button">선택삭제</button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openModal(
+                      selectedCartItemIds,
+                      "취소",
+                      "삭제",
+                      "선택하신 상품을 삭제하시겠습니까?"
+                    )
+                  }
+                >
+                  선택삭제
+                </button>
               </FinalActionsStyle>
             </div>
           </>
