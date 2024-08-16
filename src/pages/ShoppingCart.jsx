@@ -127,12 +127,12 @@ export default function ShoppingCart() {
     setLeftBtnText(leftBtnText);
     setRightBtnText(rightBtnText);
     setModalTxt(modalTxt);
-    setSelectedCartItemIds([]);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setDeleteCartItemId(null);
+    setSelectedCartItemIds([]);
   };
 
   console.log(selectedCartItemIds, leftBtnText, rightBtnText);
@@ -178,6 +178,31 @@ export default function ShoppingCart() {
     });
   };
 
+  // 장바구니 전체 선택 후 삭제하기
+  const allCartItemsDelete = () => {
+    fetch("https://openmarket.weniv.co.kr/cart/", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then((data) => {
+        console.log("Deleted from cart", data);
+        getShoppingCartItems();
+        setSelectedCartItemIds([]);
+        closeModal();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
   return (
     <>
       {isModalOpen ? (
@@ -187,10 +212,12 @@ export default function ShoppingCart() {
           leftBtnText={leftBtnText}
           rightBtnText={rightBtnText}
           selectedCartItemIds={selectedCartItemIds}
+          cartItemsIntersection={cartItemsIntersection}
           handleRightBtnClick={() =>
             individualDeleteCartItems(deleteCartItemId)
           }
           handleCheckBtnClick={() => deleteSelectedCartItems()}
+          handleAllCheckBtnClick={() => allCartItemsDelete()}
         />
       ) : (
         ""

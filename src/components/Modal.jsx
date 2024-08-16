@@ -9,9 +9,11 @@ export default function Modal({
   modalTxt,
   leftBtnText = "아니오",
   rightBtnText = "예",
+  cartItemsIntersection = [],
   selectedCartItemIds = [],
   handleRightBtnClick = () => {},
   handleCheckBtnClick,
+  handleAllCheckBtnClick = () => {},
 }) {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -35,10 +37,21 @@ export default function Modal({
           <button
             type="button"
             onClick={() => {
-              if (selectedCartItemIds.length > 0) {
+              if (
+                selectedCartItemIds.length > 0 &&
+                selectedCartItemIds.length !== cartItemsIntersection.length
+              ) {
                 handleCheckBtnClick();
+              } else if (
+                selectedCartItemIds.length === cartItemsIntersection.length
+              ) {
+                handleAllCheckBtnClick();
               } else {
-                handleRightBtnClick() || defaultHandleRightBtnClick();
+                handleRightBtnClick();
+              }
+
+              if ((rightBtnText = "예")) {
+                defaultHandleRightBtnClick();
               }
             }}
           >
