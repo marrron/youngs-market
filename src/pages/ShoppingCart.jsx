@@ -348,7 +348,14 @@ export default function ShoppingCart() {
                       <strong>
                         {formatPrice(item.price * item.quantity)}원
                       </strong>
-                      <button type="button">주문하기</button>
+                      <button
+                        onClick={() => {
+                          navigate("/order");
+                        }}
+                        type="button"
+                      >
+                        주문하기
+                      </button>
                     </div>
                     <DeleteBtnStyle
                       onClick={() =>
@@ -393,7 +400,14 @@ export default function ShoppingCart() {
                 </div>
               </PaymentAmountCalculationStyle>
               <FinalActionsStyle>
-                <button type="button">주문하기</button>
+                <button
+                  onClick={() => {
+                    navigate("/order");
+                  }}
+                  type="button"
+                >
+                  주문하기
+                </button>
                 <button
                   type="button"
                   onClick={() =>
