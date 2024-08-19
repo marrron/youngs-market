@@ -4,8 +4,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
-import iconCheckOff from "../assets/images/icon-check-off.svg";
 import iconCheckOn from "../assets/images/icon-check-on.svg";
+import iconUpArrow from "../assets/images/icon-up-arrow.svg";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
@@ -223,7 +223,9 @@ const SignUpBox = () => {
 							<p>휴대폰번호</p>
 							<PhoneNumber>
 								<SelectNumber>
-									<div onClick={toggleDropdown}>{selectDigits}</div>
+									<div onClick={toggleDropdown}>
+										{selectDigits} <img src={iconUpArrow} alt="" />
+									</div>
 									{isOpen && (
 										<ul>
 											{firstDigits.map((option, index) => (
@@ -296,21 +298,39 @@ const SignUpBox = () => {
 								<p style={{ color: messageColor }}>{idValidationMessage}</p>
 							)}
 							<p>비밀번호</p>
-							<Input
-								type="password"
-								placeholder=""
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								required
-							/>
+							<PasswordContainer>
+								<Input
+									type="password"
+									placeholder=""
+									value={password}
+									onChange={(e) => {
+										setPassword(e.target.value);
+										handlePasswordValidation(e.target.value);
+									}}
+									required
+								/>
+								{isValidationPassword && <img src={iconCheckOn} alt="" />}
+							</PasswordContainer>
 							<p>비밀번호 재확인</p>
-							<Input
-								type="password"
-								placeholder=""
-								value={password2}
-								onChange={(e) => setPassword2(e.target.value)}
-								required
-							/>
+							<PasswordContainer>
+								<Input
+									type="password"
+									placeholder=""
+									value={password2}
+									onChange={comparePassword}
+									required
+									style={{
+										border: passwordMatchMessage
+											? "1px solid var(--color-red)"
+											: "1px solid var(--color-orange)",
+									}}
+								/>
+							</PasswordContainer>
+							{passwordMatchMessage && (
+								<p style={{ color: "var(--color-red)" }}>
+									{passwordMatchMessage}
+								</p>
+							)}
 							<p>이름</p>
 							<Input
 								type="text"
@@ -321,25 +341,47 @@ const SignUpBox = () => {
 							/>
 							<p>휴대폰번호</p>
 							<PhoneNumber>
-								<select
-									value={firstDigit}
-									onChange={(e) => setFirstDigit(e.target.value)}
-								>
-									{firstDigits.map((code) => (
-										<option key={code} value={code}>
-											{code}
-										</option>
-									))}
-								</select>
+								<SelectNumber>
+									<div onClick={toggleDropdown}>
+										{selectDigits} <img src={iconUpArrow} alt="" />
+									</div>
+									{isOpen && (
+										<ul className="seller">
+											{firstDigits.map((option, index) => (
+												<li
+													key={index}
+													onClick={() => handleDigitClick(option)}
+													style={{
+														padding: "10px",
+														cursor: "pointer",
+														textAlign: "center",
+													}}
+												>
+													{option}
+												</li>
+											))}
+										</ul>
+									)}
+								</SelectNumber>
 								<input
 									type="text"
 									value={middleDigit}
-									onChange={(e) => setMiddleDigit(e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value;
+										if (/^\d*$/.test(value) && value.length <= 4) {
+											setMiddleDigit(value);
+										}
+									}}
 								/>
 								<input
 									type="text"
 									value={lastDigit}
-									onChange={(e) => setLastDigit(e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value;
+										if (/^\d*$/.test(value) && value.length <= 4) {
+											setLastDigit(value);
+										}
+									}}
 								/>
 							</PhoneNumber>
 							<p>이메일</p>
@@ -585,6 +627,8 @@ const SelectNumber = styled.div`
 		align-items: center;
 		justify-content: center;
 		position: relative;
+		justify-content: space-between;
+		padding: 17px 16px 17px 50px;
 	}
 	ul {
 		list-style-type: none;
@@ -598,6 +642,24 @@ const SelectNumber = styled.div`
 		width: 152px;
 		background-color: #fff;
 		top: 80%;
+
+		/* 스크롤 스타일 */
+		::-webkit-scrollbar {
+			width: 20px;
+		}
+
+		::-webkit-scrollbar-track {
+			background-color: rgba(0, 0, 0, 0);
+		}
+
+		::-webkit-scrollbar-thumb {
+			background-color: var(--color-grey);
+			border-radius: 10px;
+			border: 6px solid var(--color-white);
+		}
+	}
+	.seller {
+		top: 57.5%;
 	}
 `;
 
