@@ -117,11 +117,8 @@ const SearchContainerStyle = styled.div`
 
 const UserControlsStyle = styled.div`
   button {
-    p {
-      font-size: 12px;
-      color: #767676;
-    }
-
+    font-size: 12px;
+    color: #767676;
     img {
       width: 32px;
       height: 32px;
@@ -130,14 +127,16 @@ const UserControlsStyle = styled.div`
 
   .btn-user {
     margin-left: 30px;
+    &:hover {
+      opacity: 0.6;
+    }
   }
 
   .btn-shopping-cart {
     width: 60px;
-  }
 
-  .btn-shopping-cart:hover,
-  .btn-user:hover {
-    opacity: 0.6;
+    &:hover {
+      opacity: 0.6;
+    }
   }
 `;

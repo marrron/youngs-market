@@ -9,11 +9,17 @@ export default function Modal({
   modalTxt,
   leftBtnText = "아니오",
   rightBtnText = "예",
+  cartItemsIntersection = [],
+  selectedCartItemIds = [],
+  handleRightBtnClick = () => {},
+  handleCheckBtnClick,
+  handleAllCheckBtnClick = () => {},
+  handleQuantityControl,
 }) {
   const navigate = useNavigate();
   const { token } = useAuth();
 
-  const handleRightBtnClick = () => {
+  const defaultHandleRightBtnClick = () => {
     if (!token) {
       navigate("/login");
     } else {
@@ -29,7 +35,34 @@ export default function Modal({
           <button type="button" onClick={closeModal}>
             {leftBtnText}
           </button>
-          <button type="button" onClick={handleRightBtnClick}>
+          <button
+            type="button"
+            onClick={() => {
+              console.log(rightBtnText);
+              if (rightBtnText === "예") {
+                defaultHandleRightBtnClick();
+              }
+
+              if (rightBtnText === "수정") {
+                handleQuantityControl();
+              }
+
+              if (rightBtnText === "삭제") {
+                if (
+                  selectedCartItemIds.length > 0 &&
+                  selectedCartItemIds.length !== cartItemsIntersection.length
+                ) {
+                  handleCheckBtnClick();
+                } else if (
+                  selectedCartItemIds.length === cartItemsIntersection.length
+                ) {
+                  handleAllCheckBtnClick();
+                } else {
+                  handleRightBtnClick();
+                }
+              }
+            }}
+          >
             {rightBtnText}
           </button>
         </AnswerActionStyle>
