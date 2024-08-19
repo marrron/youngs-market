@@ -27,6 +27,9 @@ export default function ShoppingCart() {
   const [leftBtnText, setLeftBtnText] = useState("");
   const [rightBtnText, setRightBtnText] = useState("");
   const [deleteCartItemId, setDeleteCartItemId] = useState(null);
+  const [quantity, setQuantity] = useState(
+    deleteCartItemId ? deleteCartItemId.quantity : 1
+  );
 
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
@@ -71,6 +74,7 @@ export default function ShoppingCart() {
             ...product,
             quantity: cartItem ? cartItem.quantity : 1,
             cart_item_id: cartItem ? cartItem.cart_item_id : "",
+            is_active: cartItem ? cartItem.is_active : false,
           };
         });
       setCartItemsIntersection(intersection);
@@ -203,6 +207,43 @@ export default function ShoppingCart() {
       });
   };
 
+  // 수량 수정
+  const itemQuantityControl = () => {
+    fetch(
+      `https://openmarket.weniv.co.kr/cart/${deleteCartItemId.cart_item_id}/`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `JWT ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_id: deleteCartItemId.product_id,
+          quantity: quantity,
+          is_active: deleteCartItemId.is_active,
+        }),
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then((data) => {
+        console.log("itemQuantityControl:", data);
+        closeModal();
+        getShoppingCartItems();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    console.log(
+      deleteCartItemId.product_id,
+      quantity,
+      deleteCartItemId.is_active
+    );
+  };
+
   return (
     <>
       {isModalOpen ? (
@@ -218,6 +259,7 @@ export default function ShoppingCart() {
           }
           handleCheckBtnClick={() => deleteSelectedCartItems()}
           handleAllCheckBtnClick={() => allCartItemsDelete()}
+          handleQuantityControl={() => itemQuantityControl()}
         />
       ) : (
         ""
@@ -280,10 +322,17 @@ export default function ShoppingCart() {
                     <div
                       onClick={() => {
                         openModal(
-                          null,
+                          item,
                           "취소",
                           "수정",
-                          <QuantityControl quantity={item.quantity} />
+                          <QuantityControl
+                            item={item}
+                            initialQuantity={item.quantity}
+                            onQuantityChange={(newQuantity) => {
+                              console.log("New quantity:", newQuantity);
+                              setQuantity(newQuantity);
+                            }}
+                          />
                         );
                       }}
                     >

@@ -1,16 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import decreaseBtn from "../assets/images/icon-minus-line.svg";
 import increaseBtn from "../assets/images/icon-plus-line.svg";
 
-export default function QuantityControl({ quantity }) {
+export default function QuantityControl({
+  item,
+  initialQuantity,
+  onQuantityChange,
+}) {
+  const [quantity, setQuantity] = useState(initialQuantity || 1);
+
+  const handleIncrease = () => {
+    setQuantity((prevQuantity) => {
+      if (item && item.stock > quantity) {
+        const newQuantity = prevQuantity + 1;
+        if (onQuantityChange) onQuantityChange(newQuantity);
+        return newQuantity;
+      }
+      return prevQuantity;
+    });
+  };
+
+  const handleDecrease = () => {
+    setQuantity((prevQuantity) => {
+      const newQuantity = Math.max(prevQuantity - 1, 1);
+      if (onQuantityChange) onQuantityChange(newQuantity);
+      return newQuantity;
+    });
+  };
+
   return (
     <ProductQuantityControlStyle>
-      <DecreaseBtnStyle type="button">
+      <DecreaseBtnStyle type="button" onClick={handleDecrease}>
         <img src={decreaseBtn} alt="수량감소버튼" />
       </DecreaseBtnStyle>
       <button type="button">{quantity}</button>
-      <IncreaseBtnStyle type="button">
+      <IncreaseBtnStyle type="button" onClick={handleIncrease}>
         <img src={increaseBtn} alt="수량추가버튼" />
       </IncreaseBtnStyle>
     </ProductQuantityControlStyle>

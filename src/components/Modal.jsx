@@ -14,6 +14,7 @@ export default function Modal({
   handleRightBtnClick = () => {},
   handleCheckBtnClick,
   handleAllCheckBtnClick = () => {},
+  handleQuantityControl,
 }) {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -37,21 +38,28 @@ export default function Modal({
           <button
             type="button"
             onClick={() => {
-              if (
-                selectedCartItemIds.length > 0 &&
-                selectedCartItemIds.length !== cartItemsIntersection.length
-              ) {
-                handleCheckBtnClick();
-              } else if (
-                selectedCartItemIds.length === cartItemsIntersection.length
-              ) {
-                handleAllCheckBtnClick();
-              } else {
-                handleRightBtnClick();
+              console.log(rightBtnText);
+              if (rightBtnText === "예") {
+                defaultHandleRightBtnClick();
               }
 
-              if ((rightBtnText = "예")) {
-                defaultHandleRightBtnClick();
+              if (rightBtnText === "수정") {
+                handleQuantityControl();
+              }
+
+              if (rightBtnText === "삭제") {
+                if (
+                  selectedCartItemIds.length > 0 &&
+                  selectedCartItemIds.length !== cartItemsIntersection.length
+                ) {
+                  handleCheckBtnClick();
+                } else if (
+                  selectedCartItemIds.length === cartItemsIntersection.length
+                ) {
+                  handleAllCheckBtnClick();
+                } else {
+                  handleRightBtnClick();
+                }
               }
             }}
           >
