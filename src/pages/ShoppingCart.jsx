@@ -26,6 +26,10 @@ export default function ShoppingCart() {
   const [modalTxt, setModalTxt] = useState("");
   const [leftBtnText, setLeftBtnText] = useState("");
   const [rightBtnText, setRightBtnText] = useState("");
+  const [deleteCartItemId, setDeleteCartItemId] = useState(null);
+  const [quantity, setQuantity] = useState(
+    deleteCartItemId ? deleteCartItemId.quantity : 1
+  );
 
   // 장바구니 목록 GET
   const getShoppingCartItems = () => {
@@ -70,6 +74,7 @@ export default function ShoppingCart() {
             ...product,
             quantity: cartItem ? cartItem.quantity : 1,
             cart_item_id: cartItem ? cartItem.cart_item_id : "",
+            is_active: cartItem ? cartItem.is_active : false,
           };
         });
       setCartItemsIntersection(intersection);
@@ -120,12 +125,18 @@ export default function ShoppingCart() {
   };
 
   // 모달버튼 클릭
-  const openModal = () => {
+  const openModal = (cartItemId, leftBtnText, rightBtnText, modalTxt) => {
     setIsModalOpen(true);
+    setDeleteCartItemId(cartItemId);
+    setLeftBtnText(leftBtnText);
+    setRightBtnText(rightBtnText);
+    setModalTxt(modalTxt);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setDeleteCartItemId(null);
+    setSelectedCartItemIds([]);
   };
 
   console.log(selectedCartItemIds, leftBtnText, rightBtnText);
@@ -139,6 +150,100 @@ export default function ShoppingCart() {
     console.log("Cart Items Intersection:", cartItemsIntersection);
   }, [cartItemsIntersection]);
 
+  // 장바구니 개별 삭제하기
+  const individualDeleteCartItems = (cartItemId) => {
+    fetch(`https://openmarket.weniv.co.kr/cart/${cartItemId}/`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then((data) => {
+        console.log("Deleted from cart", data);
+        getShoppingCartItems();
+        setSelectedCartItemIds([]);
+        closeModal();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+  // 장바구니 선택 삭제하기
+  const deleteSelectedCartItems = () => {
+    selectedCartItemIds.forEach((cartItemId) => {
+      individualDeleteCartItems(cartItemId);
+    });
+  };
+
+  // 장바구니 전체 선택 후 삭제하기
+  const allCartItemsDelete = () => {
+    fetch("https://openmarket.weniv.co.kr/cart/", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then((data) => {
+        console.log("Deleted from cart", data);
+        getShoppingCartItems();
+        setSelectedCartItemIds([]);
+        closeModal();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+  // 수량 수정
+  const itemQuantityControl = () => {
+    fetch(
+      `https://openmarket.weniv.co.kr/cart/${deleteCartItemId.cart_item_id}/`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `JWT ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_id: deleteCartItemId.product_id,
+          quantity: quantity,
+          is_active: deleteCartItemId.is_active,
+        }),
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then((data) => {
+        console.log("itemQuantityControl:", data);
+        closeModal();
+        getShoppingCartItems();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    console.log(
+      deleteCartItemId.product_id,
+      quantity,
+      deleteCartItemId.is_active
+    );
+  };
+
   return (
     <>
       {isModalOpen ? (
@@ -147,6 +252,14 @@ export default function ShoppingCart() {
           modalTxt={modalTxt}
           leftBtnText={leftBtnText}
           rightBtnText={rightBtnText}
+          selectedCartItemIds={selectedCartItemIds}
+          cartItemsIntersection={cartItemsIntersection}
+          handleRightBtnClick={() =>
+            individualDeleteCartItems(deleteCartItemId)
+          }
+          handleCheckBtnClick={() => deleteSelectedCartItems()}
+          handleAllCheckBtnClick={() => allCartItemsDelete()}
+          handleQuantityControl={() => itemQuantityControl()}
         />
       ) : (
         ""
@@ -160,7 +273,8 @@ export default function ShoppingCart() {
               type="checkbox"
               id="select-all"
               checked={
-                selectedCartItemIds.length === cartItemsIntersection.length
+                selectedCartItemIds.length === cartItemsIntersection.length &&
+                cartItemsIntersection.length > 0
               }
               onChange={handleSelectAll}
             />
@@ -208,11 +322,17 @@ export default function ShoppingCart() {
                     <div
                       onClick={() => {
                         openModal(
-                          setLeftBtnText("취소"),
-                          setRightBtnText("수정"),
-                          setModalTxt(
-                            <QuantityControl quantity={item.quantity} />
-                          )
+                          item,
+                          "취소",
+                          "수정",
+                          <QuantityControl
+                            item={item}
+                            initialQuantity={item.quantity}
+                            onQuantityChange={(newQuantity) => {
+                              console.log("New quantity:", newQuantity);
+                              setQuantity(newQuantity);
+                            }}
+                          />
                         );
                       }}
                     >
@@ -228,16 +348,24 @@ export default function ShoppingCart() {
                       <strong>
                         {formatPrice(item.price * item.quantity)}원
                       </strong>
-                      <button type="button">주문하기</button>
+                      <button
+                        onClick={() => {
+                          navigate("/order");
+                        }}
+                        type="button"
+                      >
+                        주문하기
+                      </button>
                     </div>
                     <DeleteBtnStyle
-                      onClick={() => {
+                      onClick={() =>
                         openModal(
-                          setLeftBtnText("취소"),
-                          setRightBtnText("확인"),
-                          setModalTxt("상품을 삭제하시겠습니까?")
-                        );
-                      }}
+                          item.cart_item_id,
+                          "취소",
+                          "삭제",
+                          "선택하신 상품을 삭제하시겠습니까?"
+                        )
+                      }
                       type="button"
                     >
                       <img src={deleteBtn} alt="삭제버튼" />
@@ -272,8 +400,27 @@ export default function ShoppingCart() {
                 </div>
               </PaymentAmountCalculationStyle>
               <FinalActionsStyle>
-                <button type="button">주문하기</button>
-                <button type="button">선택삭제</button>
+                <button
+                  onClick={() => {
+                    navigate("/order");
+                  }}
+                  type="button"
+                >
+                  주문하기
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openModal(
+                      selectedCartItemIds,
+                      "취소",
+                      "삭제",
+                      "선택하신 상품을 삭제하시겠습니까?"
+                    )
+                  }
+                >
+                  선택삭제
+                </button>
               </FinalActionsStyle>
             </div>
           </>
