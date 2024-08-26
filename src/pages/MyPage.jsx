@@ -1,10 +1,17 @@
-import React from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Header from "../components/Header";
 import UserImg from "../assets/images/icon-user-2.svg";
 
 export default function MyPage() {
+	const [username, setUsername] = useState("");
+
+	useEffect(() => {
+		const storedUsername = localStorage.getItem("username");
+		if (storedUsername) {
+			setUsername(storedUsername);
+		}
+	}, []);
 	return (
 		<>
 			<Header></Header>
@@ -12,7 +19,7 @@ export default function MyPage() {
 				<MyInformation>
 					<div>
 						<img src={UserImg} alt="" />
-						<p>??? 님</p>
+						<p>{username}님</p>
 						<p>적립금: 0원 예치금: 0원 쿠폰: 1개</p>
 					</div>
 				</MyInformation>
@@ -115,7 +122,7 @@ const MyInformation = styled.div`
 		margin-right: 70px;
 	}
 	p:nth-child(2) {
-		margin-right: 667px;
+		margin-right: 640px;
 		font-size: 20px;
 		font-weight: 700;
 	}

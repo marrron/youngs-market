@@ -36,6 +36,7 @@ const LoginBox = () => {
 				console.log("로그인 성공:", response.data); // 성공 시 응답 데이터 출력
 				localStorage.setItem("token", response.data.token);
 				setToken(response.data.token);
+				localStorage.setItem("username", username);
 				navigate("/");
 			})
 			.catch((error) => {

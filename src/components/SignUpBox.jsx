@@ -24,10 +24,13 @@ const SignUpBox = () => {
 	const [passwordMatchMessage, setPasswordMatchMessage] = useState("");
 	const [selectDigits, setSelectDigits] = useState("010");
 	const [isOpen, setIsOpen] = useState(false);
+	const [companyNumber, setCompanyNumber] = useState("");
+	const [useremail, setUserEmail] = useState("");
+	const [domain, setDomain] = useState("");
 
 	const navigate = useNavigate();
-
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
+	const email = `${useremail}@${domain}`;
 
 	const handleTabClick = (index) => {
 		setActiveTab(index);
@@ -44,7 +47,11 @@ const SignUpBox = () => {
 			password2,
 			phone_number,
 			name,
+			email,
 		};
+
+		localStorage.setItem("userEmail", email);
+		localStorage.setItem("userName", username);
 
 		axios
 			.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData)
@@ -65,7 +72,7 @@ const SignUpBox = () => {
 		event.preventDefault();
 
 		if (username === "") {
-			setIdValidationMessage("아이디를 입력해주세요."); // 아이디가 비어있을 경우 메시지 설정
+			setIdValidationMessage("아이디를 입력해주세요.");
 			setMessageColor("var(--color-red)");
 			return;
 		}
@@ -139,6 +146,31 @@ const SignUpBox = () => {
 			phone_number.length === 11 &&
 			checked
 		);
+	};
+
+	const handleCompanyNumberCheck = (event) => {
+		event.preventDefault();
+		const company_registration_number = { companyNumber };
+
+		const AuthData = {
+			company_registration_number,
+		};
+
+		axios
+			.post(
+				"https://openmarket.weniv.co.kr/accounts/signup/valid/company_registration_number/",
+				AuthData
+			)
+			.then((response) => {
+				console.log("성공", response.data);
+				navigate("/signup");
+			})
+			.catch((error) => {
+				if (error.response) {
+					console.log("실패", error.response.data);
+					navigate("/signup");
+				}
+			});
 	};
 
 	return (
@@ -267,9 +299,17 @@ const SignUpBox = () => {
 							</PhoneNumber>
 							<p>이메일</p>
 							<Email>
-								<input type="text" />
+								<input
+									type="text"
+									value={useremail}
+									onChange={(e) => setUserEmail(e.target.value)}
+								/>
 								@
-								<input type="text" />
+								<input
+									type="text"
+									value={domain}
+									onChange={(e) => setDomain(e.target.value)}
+								/>
 							</Email>
 						</Form>
 					) : (
@@ -392,8 +432,13 @@ const SignUpBox = () => {
 							</Email>
 							<p style={{ marginTop: "50px" }}>사업자 등록번호</p>
 							<InpBtnGroup>
-								<input type="text" placeholder="" required />
-								<button>인증</button>
+								<input
+									type="text"
+									value={companyNumber}
+									onChange={(e) => setCompanyNumber(e.target.value)}
+									required
+								/>
+								<button onClick={handleCompanyNumberCheck}>인증</button>
 							</InpBtnGroup>
 							<p>스토어 이름</p>
 							<Input type="text" placeholder="" required />
