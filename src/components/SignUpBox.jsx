@@ -28,6 +28,7 @@ const SignUpBox = () => {
 	const [companyNumber, setCompanyNumber] = useState("");
 	const [useremail, setUserEmail] = useState("");
 	const [domain, setDomain] = useState("");
+	const [storeName, setStoreName] = useState("");
 
 	const navigate = useNavigate();
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
@@ -37,10 +38,10 @@ const SignUpBox = () => {
 		setActiveTab(index);
 	};
 
-	const handleSubmit = (event) => {
-		event.preventDefault();
-
+	const handleSellerSubmit = () => {
 		const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
+		const company_registration_number = companyNumber;
+		const store_name = storeName;
 
 		const AuthData = {
 			username,
@@ -49,13 +50,15 @@ const SignUpBox = () => {
 			phone_number,
 			name,
 			email,
+			company_registration_number,
+			store_name,
 		};
 
 		localStorage.setItem("userEmail", email);
 		localStorage.setItem("userName", username);
 
 		axios
-			.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData)
+			.post("https://openmarket.weniv.co.kr/accounts/signup_seller/", AuthData)
 			.then((response) => {
 				console.log("회원가입 성공:", response.data);
 				navigate("/");
@@ -67,6 +70,42 @@ const SignUpBox = () => {
 					navigate("/signup");
 				}
 			});
+	};
+
+	const handleSubmit = (event) => {
+		event.preventDefault();
+
+		if (activeTab === 0) {
+			const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
+
+			const AuthData = {
+				username,
+				password,
+				password2,
+				phone_number,
+				name,
+				email,
+			};
+
+			localStorage.setItem("userEmail", email);
+			localStorage.setItem("userName", username);
+
+			axios
+				.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData)
+				.then((response) => {
+					console.log("회원가입 성공:", response.data);
+					navigate("/");
+				})
+				.catch((error) => {
+					if (error.response) {
+						console.log("회원가입 실패:", error.response.data);
+						setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
+						navigate("/signup");
+					}
+				});
+		} else {
+			handleSellerSubmit();
+		}
 	};
 
 	const handleIdValidation = (event) => {
@@ -151,7 +190,7 @@ const SignUpBox = () => {
 
 	const handleCompanyNumberCheck = (event) => {
 		event.preventDefault();
-		const company_registration_number = { companyNumber };
+		const company_registration_number = companyNumber;
 
 		const AuthData = {
 			company_registration_number,
@@ -385,7 +424,8 @@ const SignUpBox = () => {
 							<PhoneNumber>
 								<SelectNumber>
 									<div onClick={toggleDropdown}>
-										{selectDigits} <img src={iconUpArrow} alt="" />
+										{selectDigits}{" "}
+										<img src={isOpen ? iconUpArrow : iconDownArrow} alt="" />
 									</div>
 									{isOpen && (
 										<ul className="seller">
@@ -428,22 +468,42 @@ const SignUpBox = () => {
 							</PhoneNumber>
 							<p>이메일</p>
 							<Email>
-								<input type="text" />
+								<input
+									type="text"
+									value={useremail}
+									onChange={(e) => setUserEmail(e.target.value)}
+								/>
 								@
-								<input type="text" />
+								<input
+									type="text"
+									value={domain}
+									onChange={(e) => setDomain(e.target.value)}
+								/>
 							</Email>
 							<p style={{ marginTop: "50px" }}>사업자 등록번호</p>
 							<InpBtnGroup>
 								<input
 									type="text"
 									value={companyNumber}
-									onChange={(e) => setCompanyNumber(e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value;
+										if (/^\d{0,10}$/.test(value)) {
+											setCompanyNumber(value);
+										}
+									}}
 									required
+									maxLength={10}
 								/>
 								<button onClick={handleCompanyNumberCheck}>인증</button>
 							</InpBtnGroup>
 							<p>스토어 이름</p>
-							<Input type="text" placeholder="" required />
+							<Input
+								type="text"
+								placeholder=""
+								value={storeName}
+								onChange={(e) => setStoreName(e.target.value)}
+								required
+							/>
 						</Form>
 					)}
 				</FormContainer>
