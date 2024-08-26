@@ -6,6 +6,7 @@ import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
 import iconCheckOn from "../assets/images/icon-check-on.svg";
 import iconUpArrow from "../assets/images/icon-up-arrow.svg";
+import iconDownArrow from "../assets/images/icon-down-arrow.svg";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
@@ -24,19 +25,23 @@ const SignUpBox = () => {
 	const [passwordMatchMessage, setPasswordMatchMessage] = useState("");
 	const [selectDigits, setSelectDigits] = useState("010");
 	const [isOpen, setIsOpen] = useState(false);
+	const [companyNumber, setCompanyNumber] = useState("");
+	const [useremail, setUserEmail] = useState("");
+	const [domain, setDomain] = useState("");
+	const [storeName, setStoreName] = useState("");
 
 	const navigate = useNavigate();
-
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
+	const email = `${useremail}@${domain}`;
 
 	const handleTabClick = (index) => {
 		setActiveTab(index);
 	};
 
-	const handleSubmit = (event) => {
-		event.preventDefault();
-
+	const handleSellerSubmit = () => {
 		const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
+		const company_registration_number = companyNumber;
+		const store_name = storeName;
 
 		const AuthData = {
 			username,
@@ -44,10 +49,16 @@ const SignUpBox = () => {
 			password2,
 			phone_number,
 			name,
+			email,
+			company_registration_number,
+			store_name,
 		};
 
+		localStorage.setItem("userEmail", email);
+		localStorage.setItem("userName", username);
+
 		axios
-			.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData)
+			.post("https://openmarket.weniv.co.kr/accounts/signup_seller/", AuthData)
 			.then((response) => {
 				console.log("회원가입 성공:", response.data);
 				navigate("/");
@@ -61,11 +72,47 @@ const SignUpBox = () => {
 			});
 	};
 
+	const handleSubmit = (event) => {
+		event.preventDefault();
+
+		if (activeTab === 0) {
+			const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
+
+			const AuthData = {
+				username,
+				password,
+				password2,
+				phone_number,
+				name,
+				email,
+			};
+
+			localStorage.setItem("userEmail", email);
+			localStorage.setItem("userName", username);
+
+			axios
+				.post("https://openmarket.weniv.co.kr/accounts/signup/", AuthData)
+				.then((response) => {
+					console.log("회원가입 성공:", response.data);
+					navigate("/");
+				})
+				.catch((error) => {
+					if (error.response) {
+						console.log("회원가입 실패:", error.response.data);
+						setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
+						navigate("/signup");
+					}
+				});
+		} else {
+			handleSellerSubmit();
+		}
+	};
+
 	const handleIdValidation = (event) => {
 		event.preventDefault();
 
 		if (username === "") {
-			setIdValidationMessage("아이디를 입력해주세요."); // 아이디가 비어있을 경우 메시지 설정
+			setIdValidationMessage("아이디를 입력해주세요.");
 			setMessageColor("var(--color-red)");
 			return;
 		}
@@ -139,6 +186,31 @@ const SignUpBox = () => {
 			phone_number.length === 11 &&
 			checked
 		);
+	};
+
+	const handleCompanyNumberCheck = (event) => {
+		event.preventDefault();
+		const company_registration_number = companyNumber;
+
+		const AuthData = {
+			company_registration_number,
+		};
+
+		axios
+			.post(
+				"https://openmarket.weniv.co.kr/accounts/signup/valid/company_registration_number/",
+				AuthData
+			)
+			.then((response) => {
+				console.log("성공", response.data);
+				navigate("/signup");
+			})
+			.catch((error) => {
+				if (error.response) {
+					console.log("실패", error.response.data);
+					navigate("/signup");
+				}
+			});
 	};
 
 	return (
@@ -224,7 +296,8 @@ const SignUpBox = () => {
 							<PhoneNumber>
 								<SelectNumber>
 									<div onClick={toggleDropdown}>
-										{selectDigits} <img src={iconUpArrow} alt="" />
+										{selectDigits}{" "}
+										<img src={isOpen ? iconUpArrow : iconDownArrow} alt="" />
 									</div>
 									{isOpen && (
 										<ul>
@@ -267,9 +340,17 @@ const SignUpBox = () => {
 							</PhoneNumber>
 							<p>이메일</p>
 							<Email>
-								<input type="text" />
+								<input
+									type="text"
+									value={useremail}
+									onChange={(e) => setUserEmail(e.target.value)}
+								/>
 								@
-								<input type="text" />
+								<input
+									type="text"
+									value={domain}
+									onChange={(e) => setDomain(e.target.value)}
+								/>
 							</Email>
 						</Form>
 					) : (
@@ -343,7 +424,8 @@ const SignUpBox = () => {
 							<PhoneNumber>
 								<SelectNumber>
 									<div onClick={toggleDropdown}>
-										{selectDigits} <img src={iconUpArrow} alt="" />
+										{selectDigits}{" "}
+										<img src={isOpen ? iconUpArrow : iconDownArrow} alt="" />
 									</div>
 									{isOpen && (
 										<ul className="seller">
@@ -386,17 +468,42 @@ const SignUpBox = () => {
 							</PhoneNumber>
 							<p>이메일</p>
 							<Email>
-								<input type="text" />
+								<input
+									type="text"
+									value={useremail}
+									onChange={(e) => setUserEmail(e.target.value)}
+								/>
 								@
-								<input type="text" />
+								<input
+									type="text"
+									value={domain}
+									onChange={(e) => setDomain(e.target.value)}
+								/>
 							</Email>
 							<p style={{ marginTop: "50px" }}>사업자 등록번호</p>
 							<InpBtnGroup>
-								<input type="text" placeholder="" required />
-								<button>인증</button>
+								<input
+									type="text"
+									value={companyNumber}
+									onChange={(e) => {
+										const value = e.target.value;
+										if (/^\d{0,10}$/.test(value)) {
+											setCompanyNumber(value);
+										}
+									}}
+									required
+									maxLength={10}
+								/>
+								<button onClick={handleCompanyNumberCheck}>인증</button>
 							</InpBtnGroup>
 							<p>스토어 이름</p>
-							<Input type="text" placeholder="" required />
+							<Input
+								type="text"
+								placeholder=""
+								value={storeName}
+								onChange={(e) => setStoreName(e.target.value)}
+								required
+							/>
 						</Form>
 					)}
 				</FormContainer>
