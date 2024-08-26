@@ -6,6 +6,7 @@ import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
 import iconCheckOn from "../assets/images/icon-check-on.svg";
 import iconUpArrow from "../assets/images/icon-up-arrow.svg";
+import iconDownArrow from "../assets/images/icon-down-arrow.svg";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState(0);
@@ -256,7 +257,8 @@ const SignUpBox = () => {
 							<PhoneNumber>
 								<SelectNumber>
 									<div onClick={toggleDropdown}>
-										{selectDigits} <img src={iconUpArrow} alt="" />
+										{selectDigits}{" "}
+										<img src={isOpen ? iconUpArrow : iconDownArrow} alt="" />
 									</div>
 									{isOpen && (
 										<ul>
