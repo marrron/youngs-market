@@ -7,9 +7,10 @@ import iconSearch from "../assets/images/icon-search.svg";
 import iconShoppingCart from "../assets/images/icon-shopping-cart.svg";
 import iconShoppingCart2 from "../assets/images/icon-shopping-cart-2.svg";
 import iconUser from "../assets/images/icon-user.svg";
+import iconShoppingBag from "../assets/images/icon-shopping-bag.svg";
 
 export default function Header() {
-  const { token } = useAuth();
+  const { token, loginType } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,6 +28,10 @@ export default function Header() {
 
   const handleShoppingCartButtonClick = () => {
     navigate("/shoppingcart");
+  };
+
+  const handleSellerCenterBtnClick = () => {
+    navigate("/sellercenter");
   };
 
   const isShoppingCartPage = location.pathname === "/shoppingcart";
@@ -56,23 +61,46 @@ export default function Header() {
         </button>
       </SearchContainerStyle>
       <UserControlsStyle>
-        <button
-          className="btn-shopping-cart"
-          type="button"
-          onClick={handleShoppingCartButtonClick}
-        >
-          <img src={shoppingCartIcon} alt="장바구니" />
-          <p style={{ color: cartTextColor }}>장바구니</p>
-        </button>
+        {loginType === "SELLER" && token ? (
+          <>
+            <button
+              className="btn-user"
+              type="button"
+              onClick={handleUserButtonClick}
+            >
+              <img src={iconUser} alt="로그인" />
+              <p>마이페이지</p>
+            </button>
+            <button
+              className="btn-seller-center"
+              type="button"
+              onClick={handleSellerCenterBtnClick}
+            >
+              <img src={iconShoppingBag} alt="판매자센터" />
+              <span>판매자 센터</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="btn-shopping-cart"
+              type="button"
+              onClick={handleShoppingCartButtonClick}
+            >
+              <img src={shoppingCartIcon} alt="장바구니" />
+              <p style={{ color: cartTextColor }}>장바구니</p>
+            </button>
 
-        <button
-          className="btn-user"
-          type="button"
-          onClick={handleUserButtonClick}
-        >
-          <img src={iconUser} alt="로그인" />
-          {token ? <p>마이페이지</p> : <p>로그인</p>}
-        </button>
+            <button
+              className="btn-user"
+              type="button"
+              onClick={handleUserButtonClick}
+            >
+              <img src={iconUser} alt="로그인" />
+              {token ? <p>마이페이지</p> : <p>로그인</p>}
+            </button>
+          </>
+        )}
       </UserControlsStyle>
     </HeaderStyle>
   );
@@ -116,6 +144,8 @@ const SearchContainerStyle = styled.div`
 `;
 
 const UserControlsStyle = styled.div`
+  display: flex;
+
   button {
     font-size: 12px;
     color: #767676;
@@ -137,6 +167,22 @@ const UserControlsStyle = styled.div`
 
     &:hover {
       opacity: 0.6;
+    }
+  }
+
+  .btn-seller-center {
+    background-color: var(--color-maroon);
+    width: 168px;
+    height: 54px;
+    color: var(--color-partgrey);
+    border-radius: 5px;
+    margin-left: 30px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    span {
+      font-size: 18px;
     }
   }
 `;
