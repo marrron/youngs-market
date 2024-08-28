@@ -46,6 +46,24 @@ export default function Order() {
     setSelectedPaymentMethod(e.target.value);
   };
 
+  // 우편번호
+  const openPostcodeFinder = () => {
+    new window.daum.Postcode({
+      oncomplete: function (data) {
+        setAddress({
+          zip: data.zonecode,
+          street: data.roadAddress,
+          detail: "",
+        });
+      },
+    }).open();
+  };
+
+  // 동의
+  const handleAgreeBtnClick = () => {
+    setIsAgree(!isAgree);
+  };
+
   // direct_order or cart_one_order
   const shippingFee = selectedProduct.shipping_fee.toLocaleString();
   const totalPrice = selectedProduct.price * selectedProduct.quantity;
@@ -249,7 +267,11 @@ export default function Order() {
                   }
                   type="text"
                 />
-                <input type="button" value="우편번호 찾기" />
+                <input
+                  type="button"
+                  value="우편번호 찾기"
+                  onClick={openPostcodeFinder}
+                />
                 <br />
                 <input
                   id="addressZip"
