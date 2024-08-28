@@ -6,10 +6,12 @@ import iconCheck from "../assets/images/icon-check-box.svg";
 import iconCheckFill from "../assets/images/icon-check-fill-box.svg";
 import { useOrder } from "../context/OrderContext";
 import { useProduct } from "../context/ProductContext";
+import { useCartItems } from "../context/CartContext";
 
 export default function Order() {
   const { selectedProduct } = useProduct();
-  const { orderkind, filteredItems } = useOrder();
+  const { orderkind } = useOrder();
+  const { cartItemsIntersection } = useCartItems();
 
   const [ordererName, setOrdererName] = useState("");
   const [ordererPhone, setOrdererPhone] = useState({
@@ -68,20 +70,74 @@ export default function Order() {
   const handlePaymentBtnClick = () => {
     if (isAgree) {
       if (orderkind === "direct_order") {
-        console.log(1);
+        handleDirectOrder();
       } else if (orderkind === "cart_one_order") {
-        console.log(2);
+        handleCartOneOrder();
       } else if (orderkind === "cart_order") {
-        console.log(3);
+        handleCartOrder();
       }
     }
   };
 
   // direct_order 주문 생성
+  const handleDirectOrder = () => {
+    // order data
+    const orderData = {
+      product_id: selectedProduct.product_id,
+      quantity: selectedProduct.quantity,
+      order_kind: orderkind,
+
+      reciever: recipientName,
+      reciever_phone_number: recipientPhone,
+      address: address,
+      address_message: deliveryMessage,
+      payment_method: selectedPaymentMethod,
+      total_price:
+        selectedProduct.price * selectedProduct.quantity +
+        selectedProduct.shipping_fee,
+    };
+    console.log(orderData);
+  };
 
   // cart_one_order 주문 생성
+  const handleCartOneOrder = () => {
+    // order data
+    const orderData = {
+      product_id: selectedProduct.product_id,
+      quantity: selectedProduct.quantity,
+      order_kind: orderkind,
+
+      reciever: recipientName,
+      reciever_phone_number: recipientPhone,
+      address: address,
+      address_message: deliveryMessage,
+      payment_method: selectedPaymentMethod,
+      total_price:
+        selectedProduct.price * selectedProduct.quantity +
+        selectedProduct.shipping_fee,
+    };
+    console.log(orderData);
+  };
 
   // cart_order 주문 생성
+  const handleCartOrder = () => {
+    // order data
+    const orderData = {
+      product_id: cartItemsIntersection.product_id,
+      quantity: cartItemsIntersection.quantity,
+      order_kind: orderkind,
+
+      reciever: recipientName,
+      reciever_phone_number: recipientPhone,
+      address: address,
+      address_message: deliveryMessage,
+      payment_method: selectedPaymentMethod,
+      total_price:
+        cartItemsIntersection.price * cartItemsIntersection.quantity +
+        cartItemsIntersection.shipping_fee,
+    };
+    console.log(orderData);
+  };
 
   // direct_order or cart_one_order
   const shippingFee = selectedProduct.shipping_fee.toLocaleString();
@@ -93,13 +149,13 @@ export default function Order() {
   const formattedFinalTotalPrice = finalTotalPrice.toLocaleString();
 
   // cart_order
-  const cartOrderTotalShippingFee = filteredItems.reduce(
+  const cartOrderTotalShippingFee = cartItemsIntersection.reduce(
     (acc, item) => acc + item.shipping_fee,
     0
   );
   const formattedCartOrderTotalShippingFee =
     cartOrderTotalShippingFee.toLocaleString();
-  const cartTotalItemPrice = filteredItems.reduce(
+  const cartTotalItemPrice = cartItemsIntersection.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
@@ -143,7 +199,7 @@ export default function Order() {
             </>
           ) : (
             <>
-              {filteredItems.map((item, index) => {
+              {cartItemsIntersection.map((item, index) => {
                 const itemShippingFee = item.shipping_fee.toLocaleString();
                 const itemTotalPrice = item.price * item.quantity;
                 const formattedItemPrice = itemTotalPrice.toLocaleString();

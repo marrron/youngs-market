@@ -19,7 +19,7 @@ export default function ShoppingCart() {
   const { token } = useAuth();
   const { products, selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
-  const { setOrderkind, filteredItems, setFilteredItems } = useOrder();
+  const { setOrderkind } = useOrder();
   const [totalAmount, setTotalAmount] = useState(0);
   const [productDiscount] = useState(0);
   const [deliveryFee] = useState(0);
@@ -117,17 +117,6 @@ export default function ShoppingCart() {
     }
   };
 
-  // checked된 상품 주문하기
-  useEffect(() => {
-    console.log("Selected Cart Item IDs:", selectedCartItemIds);
-    console.log("Cart Items Intersection:", cartItemsIntersection);
-    setFilteredItems(
-      cartItemsIntersection.filter((item) =>
-        selectedCartItemIds.includes(item.cart_item_id)
-      )
-    );
-  }, [selectedCartItemIds, cartItemsIntersection]);
-
   // 개별 체크박스 클릭 이벤트
   const handleSelect = (cartItemId) => {
     setSelectedCartItemIds((prevSelected) =>
@@ -160,13 +149,8 @@ export default function ShoppingCart() {
   }, [products, cartItems]);
 
   useEffect(() => {
-    console.log(
-      "Cart Items Intersection:",
-      cartItemsIntersection,
-      "filteredItems",
-      filteredItems
-    );
-  }, [cartItemsIntersection, filteredItems, selectedProduct]);
+    console.log("Cart Items Intersection:", cartItemsIntersection);
+  }, [cartItemsIntersection, selectedProduct]);
 
   // 장바구니 개별 삭제하기
   const individualDeleteCartItems = (cartItemId) => {

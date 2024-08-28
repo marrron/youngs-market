@@ -8,11 +8,6 @@ export const OrderProvider = ({ children }) => {
     return savedOrder ? JSON.parse(savedOrder) : null;
   });
 
-  const [filteredItems, setFilteredItems] = useState(() => {
-    const filteredOrder = localStorage.getItem("filteredItems");
-    return filteredOrder ? JSON.parse(filteredOrder) : [];
-  });
-
   useEffect(() => {
     if (orderkind) {
       localStorage.setItem("orderkind", JSON.stringify(orderkind));
@@ -21,18 +16,8 @@ export const OrderProvider = ({ children }) => {
     }
   }, [orderkind]);
 
-  useEffect(() => {
-    if (filteredItems) {
-      localStorage.setItem("filteredItems", JSON.stringify(filteredItems));
-    } else {
-      localStorage.removeItem("filteredItems");
-    }
-  }, [filteredItems]);
-
   return (
-    <OrderContext.Provider
-      value={{ orderkind, setOrderkind, filteredItems, setFilteredItems }}
-    >
+    <OrderContext.Provider value={{ orderkind, setOrderkind }}>
       {children}
     </OrderContext.Provider>
   );
