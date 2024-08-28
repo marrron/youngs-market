@@ -22,7 +22,7 @@ export default function ShoppingCart() {
   const { setOrderkind } = useOrder();
   const [totalAmount, setTotalAmount] = useState(0);
   const [productDiscount] = useState(0);
-  const [deliveryFee] = useState(0);
+  const [deliveryFee, setDeliveryFee] = useState(0);
   const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTxt, setModalTxt] = useState("");
@@ -91,13 +91,19 @@ export default function ShoppingCart() {
     return "0";
   };
 
-  // 상품의 총 금액 구하기
+  // 상품의 총 금액 및 배송비 구하기
   useEffect(() => {
     const total = cartItemsIntersection.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0
     );
     setTotalAmount(total);
+
+    const totalDeliveryFee = cartItemsIntersection.reduce(
+      (acc, item) => acc + item.shipping_fee,
+      0
+    );
+    setDeliveryFee(totalDeliveryFee);
   }, [cartItemsIntersection]);
 
   // 상품 이미지 클릭하면 상세페이지로 이동
@@ -319,9 +325,7 @@ export default function ShoppingCart() {
                       <p>{item.store_name}</p>
                       <p>{item.product_name}</p>
                       <strong>{formatPrice(item.price)}원</strong>
-                      <p>
-                        택배배송<span>/</span>무료배송
-                      </p>
+                      <p>{item.shipping_fee.toLocaleString()}원</p>
                     </div>
                     <div
                       onClick={() => {
