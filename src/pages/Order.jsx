@@ -1,14 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import iconCheck from "../assets/images/icon-check-box.svg";
+import iconCheckFill from "../assets/images/icon-check-fill-box.svg";
 import { useOrder } from "../context/OrderContext";
 import { useProduct } from "../context/ProductContext";
 
 export default function Order() {
   const { selectedProduct } = useProduct();
   const { orderkind, filteredItems } = useOrder();
+
+  const [ordererName, setOrdererName] = useState("");
+  const [ordererPhone, setOrdererPhone] = useState({
+    part1: "",
+    part2: "",
+    part3: "",
+  });
+  const [ordererEmail, setOrdererEmail] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState({
+    part1: "",
+    part2: "",
+    part3: "",
+  });
+  const [address, setAddress] = useState({ zip: "", street: "", detail: "" });
+  const [deliveryMessage, setDeliveryMessage] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [isAgree, setIsAgree] = useState(false);
+
+  console.log(
+    ordererName,
+    ordererPhone,
+    ordererEmail,
+    recipientName,
+    recipientPhone,
+    address,
+    deliveryMessage,
+    selectedPaymentMethod,
+    isAgree
+  );
+
+  // payment method
+  const handlePaymentChange = (e) => {
+    setSelectedPaymentMethod(e.target.value);
+  };
 
   // direct_order or cart_one_order
   const shippingFee = selectedProduct.shipping_fee.toLocaleString();
@@ -105,50 +141,145 @@ export default function Order() {
           <OrdererInfoStyle>
             <h4>주문자 정보</h4>
             <OrdererNameStyle>
-              <label htmlFor="">이름</label>
-              <input type="text" />
+              <label htmlFor="ordererName">이름</label>
+              <input
+                id="ordererName"
+                value={ordererName}
+                type="text"
+                onChange={(e) => setOrdererName(e.target.value)}
+              />
             </OrdererNameStyle>
             <OrdererPhoneNumberStyle>
-              <label htmlFor="">휴대폰</label>
-              <input type="text" />
+              <label htmlFor="ordererPhone">휴대폰</label>
+              <input
+                id="ordererPhone"
+                value={ordererPhone.part1}
+                type="text"
+                onChange={(e) =>
+                  setOrdererPhone({ ...ordererPhone, part1: e.target.value })
+                }
+              />
               <span>-</span>
-              <input type="text" />
+              <input
+                id="ordererPhone"
+                value={ordererPhone.part2}
+                type="text"
+                onChange={(e) =>
+                  setOrdererPhone({ ...ordererPhone, part2: e.target.value })
+                }
+              />
               <span>-</span>
-              <input type="text" />
+              <input
+                id="ordererPhone"
+                value={ordererPhone.part3}
+                type="text"
+                onChange={(e) =>
+                  setOrdererPhone({ ...ordererPhone, part3: e.target.value })
+                }
+              />
             </OrdererPhoneNumberStyle>
             <OrdererEmailStyle>
-              <label htmlFor="">이메일</label>
-              <input type="text" />
+              <label htmlFor="ordererEmail">이메일</label>
+              <input
+                id="ordererEmail"
+                value={ordererEmail}
+                type="text"
+                onChange={(e) => setOrdererEmail(e.target.value)}
+              />
             </OrdererEmailStyle>
           </OrdererInfoStyle>
           <DeliveryAddressInfoStyle>
             <h4>배송지 정보</h4>
             <DeliveryAddressRecipientStyle>
-              <label htmlFor="">수령인</label>
-              <input type="text" />
+              <label htmlFor="recipientName">수령인</label>
+              <input
+                type="text"
+                id="recipientName"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+              />
             </DeliveryAddressRecipientStyle>
             <DeliveryAddressPhoneNumberStyle>
-              <label htmlFor="">휴대폰</label>
-              <input type="text" />
+              <label htmlFor="recipientPhone">휴대폰</label>
+              <input
+                type="text"
+                id="recipientPhone"
+                value={recipientPhone.part1}
+                onChange={(e) =>
+                  setRecipientPhone({
+                    ...recipientPhone,
+                    part1: e.target.value,
+                  })
+                }
+              />
               <span>-</span>
-              <input type="text" />
+              <input
+                type="text"
+                id="recipientPhone"
+                value={recipientPhone.part2}
+                onChange={(e) =>
+                  setRecipientPhone({
+                    ...recipientPhone,
+                    part2: e.target.value,
+                  })
+                }
+              />
               <span>-</span>
-              <input type="text" />
+              <input
+                type="text"
+                id="recipientPhone"
+                value={recipientPhone.part3}
+                onChange={(e) =>
+                  setRecipientPhone({
+                    ...recipientPhone,
+                    part3: e.target.value,
+                  })
+                }
+              />
             </DeliveryAddressPhoneNumberStyle>
             <DeliveryAddressStyle>
-              <label htmlFor="">배송주소</label>
+              <label htmlFor="addressZip">배송주소</label>
               <div>
-                <input type="text" />
+                <input
+                  id="addressZip"
+                  placeholder="우편번호"
+                  value={address.zip}
+                  onChange={(e) =>
+                    setAddress({ ...address, zip: e.target.value })
+                  }
+                  type="text"
+                />
                 <input type="button" value="우편번호 찾기" />
                 <br />
-                <input type="text" />
+                <input
+                  id="addressZip"
+                  placeholder="도로명 주소"
+                  value={address.street}
+                  type="text"
+                  onChange={(e) =>
+                    setAddress({ ...address, street: e.target.value })
+                  }
+                />
                 <br />
-                <input type="text" />
+                <input
+                  id="addressZip"
+                  placeholder="상세 주소"
+                  value={address.detail}
+                  type="text"
+                  onChange={(e) =>
+                    setAddress({ ...address, detail: e.target.value })
+                  }
+                />
               </div>
             </DeliveryAddressStyle>
             <DeliveryAddressMessageStyle>
-              <label htmlFor="">배송메시지</label>
-              <input type="text" />
+              <label htmlFor="deliveryMessage">배송메시지</label>
+              <input
+                id="deliveryMessage"
+                value={deliveryMessage}
+                type="text"
+                onChange={(e) => setDeliveryMessage(e.target.value)}
+              />
             </DeliveryAddressMessageStyle>
           </DeliveryAddressInfoStyle>
         </DeliveryInfoContainerStyle>
@@ -157,29 +288,54 @@ export default function Order() {
             <h4>결제수단</h4>
             <PaymentChooseStyle>
               <div>
-                <input type="radio" id="card" />
-                <label htmlFor="card"></label>
-                <span>신용/체크카드</span>
+                <input
+                  type="radio"
+                  id="card"
+                  name="payment-method"
+                  value="CARD"
+                  onChange={handlePaymentChange}
+                />
+                <label htmlFor="card">신용/체크카드</label>
               </div>
               <div>
-                <input type="radio" id="no-bankbook" />
-                <label htmlFor="no-bankbook"></label>
-                <span>무통장 입금</span>
+                <input
+                  type="radio"
+                  id="no-bankbook"
+                  name="payment-method"
+                  value="DEPOSIT"
+                  onChange={handlePaymentChange}
+                />
+                <label htmlFor="no-bankbook">무통장 입금</label>
               </div>
               <div>
-                <input type="radio" id="mobile-phone" />
-                <label htmlFor="mobile-phone"></label>
-                <span>휴대폰 결제</span>
+                <input
+                  type="radio"
+                  id="mobile-phone"
+                  name="payment-method"
+                  value="PHONE_PAYMENT"
+                  onChange={handlePaymentChange}
+                />
+                <label htmlFor="mobile-phone">휴대폰 결제</label>
               </div>
               <div>
-                <input type="radio" id="naver-pay" />
-                <label htmlFor="naver-pay"></label>
-                <span>네이버페이</span>
+                <input
+                  type="radio"
+                  id="naver-pay"
+                  name="payment-method"
+                  value="NAVERPAY"
+                  onChange={handlePaymentChange}
+                />
+                <label htmlFor="naver-pay">네이버페이</label>
               </div>
               <div>
-                <input type="radio" id="kakao-pay" />
-                <label htmlFor="kakao-pay"></label>
-                <span>카카오페이</span>
+                <input
+                  type="radio"
+                  id="kakao-pay"
+                  name="payment-method"
+                  value="KAKAOPAY"
+                  onChange={handlePaymentChange}
+                />
+                <label htmlFor="kakao-pay">카카오페이</label>
               </div>
             </PaymentChooseStyle>
           </PaymentMethodStyle>
@@ -263,15 +419,17 @@ export default function Order() {
                 )}
               </div>
               <ContentAgreementStyle>
-                <button type="button">
-                  <img src={iconCheck} alt="체크버튼" />
+                <button type="button" onClick={handleAgreeBtnClick}>
+                  {isAgree ? (
+                    <img src={iconCheckFill} alt="체크버튼" />
+                  ) : (
+                    <img src={iconCheck} alt="체크버튼" />
+                  )}
                 </button>
                 <span>
                   주문 내용을 확인하였으며, 정보 제공 등에 동의합니다.
                 </span>
-                <button className="btn-pay" type="button">
-                  결제하기
-                </button>
+                <button type="button">결제하기</button>
               </ContentAgreementStyle>
             </InfoBoxStyle>
           </FinalPaymentInfoStyle>
@@ -394,9 +552,11 @@ const TotalPriceStyle = styled.div`
 
 const DeliveryInfoContainerStyle = styled.div`
   width: 1280px;
+  padding-top: 83px;
 
   h3 {
     font-size: 24px;
+    font-weight: bold;
     padding-bottom: 18px;
     border-bottom: 2px solid var(--color-orange);
   }
@@ -591,6 +751,11 @@ const DeliveryAddressStyle = styled.div`
     input {
       margin-left: 6px;
 
+      &::placeholder {
+        color: var(--color-maroon);
+        opacity: 80%;
+      }
+
       &:nth-of-type(1) {
         width: 160px;
         height: 30px;
@@ -661,20 +826,21 @@ const PaymentChooseStyle = styled.div`
 
   label {
     position: relative;
-    padding-right: 25px;
+    padding-left: 30px;
     cursor: pointer;
     margin-bottom: 10px;
-    display: inline-block;
 
     &::before {
       content: "";
       position: absolute;
       left: 0;
-      top: -8px;
+      top: 50%;
+      transform: translateY(-50%);
       width: 18px;
       height: 18px;
       border: 2px solid var(--color-orange);
       border-radius: 50%;
+      background-color: var(--color-lightgrey);
     }
   }
 
@@ -682,15 +848,12 @@ const PaymentChooseStyle = styled.div`
     content: "";
     position: absolute;
     left: 5px;
-    top: -3px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 12px;
     height: 12px;
     border-radius: 50%;
     background-color: var(--color-orange);
-  }
-
-  span {
-    padding-left: 3px;
   }
 `;
 
