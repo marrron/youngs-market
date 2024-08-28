@@ -4,14 +4,17 @@ import GlobalStyles from "./style/GlobalStyles";
 import { AuthProvider } from "./context/AuthContext";
 import { ProductProvider } from "./context/ProductContext";
 import { CartProvider } from "./context/CartContext";
+import { OrderProvider } from "./context/OrderContext";
 
 function App() {
   return (
     <AuthProvider>
       <ProductProvider>
         <CartProvider>
-          <GlobalStyles />
-          <Router />
+          <OrderProvider>
+            <GlobalStyles />
+            <Router />
+          </OrderProvider>
         </CartProvider>
       </ProductProvider>
     </AuthProvider>
