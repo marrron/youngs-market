@@ -9,6 +9,7 @@ import deleteBtn from "../assets/images/icon-delete.svg";
 import { useAuth } from "../context/AuthContext";
 import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
+import { useOrder } from "../context/OrderContext";
 import Modal from "../components/Modal";
 import QuantityControl from "../components/QuantityControl";
 
@@ -16,8 +17,9 @@ export default function ShoppingCart() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const { token } = useAuth();
-  const { products, setSelectedProduct } = useProduct();
+  const { products, selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
+  const { setOrderkind, filteredItems, setFilteredItems } = useOrder();
   const [totalAmount, setTotalAmount] = useState(0);
   const [productDiscount] = useState(0);
   const [deliveryFee] = useState(0);
@@ -115,6 +117,17 @@ export default function ShoppingCart() {
     }
   };
 
+  // checked된 상품 주문하기
+  useEffect(() => {
+    console.log("Selected Cart Item IDs:", selectedCartItemIds);
+    console.log("Cart Items Intersection:", cartItemsIntersection);
+    setFilteredItems(
+      cartItemsIntersection.filter((item) =>
+        selectedCartItemIds.includes(item.cart_item_id)
+      )
+    );
+  }, [selectedCartItemIds, cartItemsIntersection]);
+
   // 개별 체크박스 클릭 이벤트
   const handleSelect = (cartItemId) => {
     setSelectedCartItemIds((prevSelected) =>
@@ -147,8 +160,13 @@ export default function ShoppingCart() {
   }, [products, cartItems]);
 
   useEffect(() => {
-    console.log("Cart Items Intersection:", cartItemsIntersection);
-  }, [cartItemsIntersection]);
+    console.log(
+      "Cart Items Intersection:",
+      cartItemsIntersection,
+      "filteredItems",
+      filteredItems
+    );
+  }, [cartItemsIntersection, filteredItems, selectedProduct]);
 
   // 장바구니 개별 삭제하기
   const individualDeleteCartItems = (cartItemId) => {
@@ -299,7 +317,9 @@ export default function ShoppingCart() {
                         checked={selectedCartItemIds.includes(
                           item.cart_item_id
                         )}
-                        onChange={() => handleSelect(item.cart_item_id)}
+                        onChange={() => {
+                          handleSelect(item.cart_item_id);
+                        }}
                       />
                       <label htmlFor={id}></label>
                     </div>
@@ -351,6 +371,8 @@ export default function ShoppingCart() {
                       <button
                         onClick={() => {
                           navigate("/order");
+                          setSelectedProduct(item);
+                          setOrderkind("cart_one_order");
                         }}
                         type="button"
                       >
@@ -403,6 +425,7 @@ export default function ShoppingCart() {
                 <button
                   onClick={() => {
                     navigate("/order");
+                    setOrderkind("cart_order");
                   }}
                   type="button"
                 >
