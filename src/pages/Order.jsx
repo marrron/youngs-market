@@ -64,6 +64,25 @@ export default function Order() {
     setIsAgree(!isAgree);
   };
 
+  // 결제하기
+  const handlePaymentBtnClick = () => {
+    if (isAgree) {
+      if (orderkind === "direct_order") {
+        console.log(1);
+      } else if (orderkind === "cart_one_order") {
+        console.log(2);
+      } else if (orderkind === "cart_order") {
+        console.log(3);
+      }
+    }
+  };
+
+  // direct_order 주문 생성
+
+  // cart_one_order 주문 생성
+
+  // cart_order 주문 생성
+
   // direct_order or cart_one_order
   const shippingFee = selectedProduct.shipping_fee.toLocaleString();
   const totalPrice = selectedProduct.price * selectedProduct.quantity;
@@ -451,7 +470,17 @@ export default function Order() {
                 <span>
                   주문 내용을 확인하였으며, 정보 제공 등에 동의합니다.
                 </span>
-                <button type="button">결제하기</button>
+                <button
+                  style={{
+                    backgroundColor: isAgree
+                      ? "var(--color-orange)"
+                      : "var(--color-maroon)",
+                  }}
+                  type="button"
+                  onClick={handlePaymentBtnClick}
+                >
+                  결제하기
+                </button>
               </ContentAgreementStyle>
             </InfoBoxStyle>
           </FinalPaymentInfoStyle>
