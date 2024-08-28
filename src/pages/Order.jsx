@@ -4,11 +4,13 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import iconCheck from "../assets/images/icon-check-box.svg";
 import iconCheckFill from "../assets/images/icon-check-fill-box.svg";
+import { useAuth } from "../context/AuthContext";
 import { useOrder } from "../context/OrderContext";
 import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
 
 export default function Order() {
+  const { token } = useAuth();
   const { selectedProduct } = useProduct();
   const { orderkind } = useOrder();
   const { cartItemsIntersection } = useCartItems();
@@ -42,6 +44,30 @@ export default function Order() {
     selectedPaymentMethod,
     isAgree
   );
+
+  // direct_order or cart_one_order
+  const shippingFee = selectedProduct.shipping_fee.toLocaleString();
+  const totalPrice = selectedProduct.price * selectedProduct.quantity;
+  const formattedPrice = totalPrice.toLocaleString();
+  const finalTotalPrice =
+    selectedProduct.quantity * selectedProduct.price +
+    selectedProduct.shipping_fee;
+  const formattedFinalTotalPrice = finalTotalPrice.toLocaleString();
+
+  // cart_order
+  const cartOrderTotalShippingFee = cartItemsIntersection.reduce(
+    (acc, item) => acc + item.shipping_fee,
+    0
+  );
+  const formattedCartOrderTotalShippingFee =
+    cartOrderTotalShippingFee.toLocaleString();
+  const cartTotalItemPrice = cartItemsIntersection.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
+  const formattedCartTotalItemPrice = cartTotalItemPrice.toLocaleString();
+  const cartFinalTotalPrice = cartTotalItemPrice + cartOrderTotalShippingFee;
+  const cartFormattedFinalTotalPrice = cartFinalTotalPrice.toLocaleString();
 
   // payment method
   const handlePaymentChange = (e) => {
@@ -80,88 +106,126 @@ export default function Order() {
   };
 
   // direct_order 주문 생성
-  const handleDirectOrder = () => {
-    // order data
+  const handleDirectOrder = async () => {
     const orderData = {
       product_id: selectedProduct.product_id,
       quantity: selectedProduct.quantity,
       order_kind: orderkind,
 
-      reciever: recipientName,
-      reciever_phone_number: recipientPhone,
-      address: address,
+      receiver: recipientName,
+      receiver_phone_number: Object.values(recipientPhone).join(""),
+      address: Object.values(address).join(""),
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
       total_price:
         selectedProduct.price * selectedProduct.quantity +
         selectedProduct.shipping_fee,
     };
-    console.log(orderData);
+
+    try {
+      const response = await fetch("https://openmarket.weniv.co.kr/order/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `JWT ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Order creation failed:", errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Order created successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
   };
 
   // cart_one_order 주문 생성
-  const handleCartOneOrder = () => {
-    // order data
+  const handleCartOneOrder = async () => {
     const orderData = {
       product_id: selectedProduct.product_id,
       quantity: selectedProduct.quantity,
       order_kind: orderkind,
-
-      reciever: recipientName,
-      reciever_phone_number: recipientPhone,
-      address: address,
-      address_message: deliveryMessage,
-      payment_method: selectedPaymentMethod,
       total_price:
         selectedProduct.price * selectedProduct.quantity +
         selectedProduct.shipping_fee,
+
+      receiver: recipientName,
+      receiver_phone_number: Object.values(recipientPhone).join(""),
+      address: Object.values(address).join(""),
+      address_message: deliveryMessage,
+      payment_method: selectedPaymentMethod,
     };
-    console.log(orderData);
+
+    try {
+      const response = await fetch("https://openmarket.weniv.co.kr/order/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `JWT ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Order creation failed:", errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Order created successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
   };
 
   // cart_order 주문 생성
-  const handleCartOrder = () => {
-    // order data
+  const handleCartOrder = async () => {
     const orderData = {
-      product_id: cartItemsIntersection.product_id,
-      quantity: cartItemsIntersection.quantity,
+      total_price: cartFinalTotalPrice,
       order_kind: orderkind,
 
-      reciever: recipientName,
-      reciever_phone_number: recipientPhone,
-      address: address,
+      receiver: recipientName,
+      receiver_phone_number: Object.values(recipientPhone).join(""),
+      address: Object.values(address).join(""),
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
-      total_price:
-        cartItemsIntersection.price * cartItemsIntersection.quantity +
-        cartItemsIntersection.shipping_fee,
     };
-    console.log(orderData);
+
+    try {
+      const response = await fetch("https://openmarket.weniv.co.kr/order/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `JWT ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Order creation failed:", errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Order created successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
   };
-
-  // direct_order or cart_one_order
-  const shippingFee = selectedProduct.shipping_fee.toLocaleString();
-  const totalPrice = selectedProduct.price * selectedProduct.quantity;
-  const formattedPrice = totalPrice.toLocaleString();
-  const finalTotalPrice =
-    selectedProduct.quantity * selectedProduct.price +
-    selectedProduct.shipping_fee;
-  const formattedFinalTotalPrice = finalTotalPrice.toLocaleString();
-
-  // cart_order
-  const cartOrderTotalShippingFee = cartItemsIntersection.reduce(
-    (acc, item) => acc + item.shipping_fee,
-    0
-  );
-  const formattedCartOrderTotalShippingFee =
-    cartOrderTotalShippingFee.toLocaleString();
-  const cartTotalItemPrice = cartItemsIntersection.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-  const formattedCartTotalItemPrice = cartTotalItemPrice.toLocaleString();
-  const cartFinalTotalPrice = cartTotalItemPrice + cartOrderTotalShippingFee;
-  const cartFormattedFinalTotalPrice = cartFinalTotalPrice.toLocaleString();
 
   return (
     <>
