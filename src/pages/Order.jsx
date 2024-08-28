@@ -3,8 +3,37 @@ import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import iconCheck from "../assets/images/icon-check-box.svg";
+import { useOrder } from "../context/OrderContext";
+import { useProduct } from "../context/ProductContext";
 
 export default function Order() {
+  const { selectedProduct } = useProduct();
+  const { orderkind, filteredItems } = useOrder();
+
+  // direct_order or cart_one_order
+  const shippingFee = selectedProduct.shipping_fee.toLocaleString();
+  const totalPrice = selectedProduct.price * selectedProduct.quantity;
+  const formattedPrice = totalPrice.toLocaleString();
+  const finalTotalPrice =
+    selectedProduct.quantity * selectedProduct.price +
+    selectedProduct.shipping_fee;
+  const formattedFinalTotalPrice = finalTotalPrice.toLocaleString();
+
+  // cart_order
+  const cartOrderTotalShippingFee = filteredItems.reduce(
+    (acc, item) => acc + item.shipping_fee,
+    0
+  );
+  const formattedCartOrderTotalShippingFee =
+    cartOrderTotalShippingFee.toLocaleString();
+  const cartTotalItemPrice = filteredItems.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
+  const formattedCartTotalItemPrice = cartTotalItemPrice.toLocaleString();
+  const cartFinalTotalPrice = cartTotalItemPrice + cartOrderTotalShippingFee;
+  const cartFormattedFinalTotalPrice = cartFinalTotalPrice.toLocaleString();
+
   return (
     <>
       <Header />
@@ -17,46 +46,59 @@ export default function Order() {
           <span>주문금액</span>
         </InfoTxtStyle>
         <OrderItemsContainerStyle>
-          <OrderItemStyle>
-            <ItemDetailStyle>
-              <button type="button">
-                <img
-                  src="https://openmarket.weniv.co.kr/media/products/2024/06/28/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2024-06-28_%E1%84%8B%E1%85%A9%E1%84%8C%E1%85%A5%E1%86%AB_10.46.48.png"
-                  alt="상품이미지"
-                />
-              </button>
-              <ItemInfoStyle>
-                <p>백엔드글로벌</p>
-                <p>딥러닝 개발자 무릎 담요</p>
-                <p>수량 : 1개</p>
-              </ItemInfoStyle>
-            </ItemDetailStyle>
-            <span>-</span>
-            <span>무료배송</span>
-            <strong>17,500원</strong>
-          </OrderItemStyle>
-          <OrderItemStyle>
-            <ItemDetailStyle>
-              <button type="button">
-                <img
-                  src="https://openmarket.weniv.co.kr/media/products/2024/06/28/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2024-06-28_%E1%84%8B%E1%85%A9%E1%84%8C%E1%85%A5%E1%86%AB_10.46.48.png"
-                  alt="상품이미지"
-                />
-              </button>
-              <ItemInfoStyle>
-                <p className="store-name">백엔드글로벌</p>
-                <p className="item-name">딥러닝 개발자 무릎 담요</p>
-                <p className="item-quantity">수량 : 1개</p>
-              </ItemInfoStyle>
-            </ItemDetailStyle>
-            <span className="discount">-</span>
-            <span className="delivery">무료배송</span>
-            <strong className="item-price">17,500원</strong>
-          </OrderItemStyle>
-          <TotalPriceStyle>
-            <p>총 주문금액</p>
-            <strong>46,500원</strong>
-          </TotalPriceStyle>
+          {orderkind === "direct_order" || orderkind === "cart_one_order" ? (
+            <>
+              <OrderItemStyle>
+                <ItemDetailStyle>
+                  <button type="button">
+                    <img src={selectedProduct.image} alt="상품이미지" />
+                  </button>
+                  <ItemInfoStyle>
+                    <p>{selectedProduct.store_name}</p>
+                    <p>{selectedProduct.product_name}</p>
+                    <p>수량 : {selectedProduct.quantity}개</p>
+                  </ItemInfoStyle>
+                </ItemDetailStyle>
+                <span>-</span>
+                <span>{shippingFee}원</span>
+                <strong>{formattedPrice}원</strong>
+              </OrderItemStyle>
+              <TotalPriceStyle>
+                <p>총 주문금액</p>
+                <strong>{formattedFinalTotalPrice}원</strong>
+              </TotalPriceStyle>
+            </>
+          ) : (
+            <>
+              {filteredItems.map((item, index) => {
+                const itemShippingFee = item.shipping_fee.toLocaleString();
+                const itemTotalPrice = item.price * item.quantity;
+                const formattedItemPrice = itemTotalPrice.toLocaleString();
+
+                return (
+                  <OrderItemStyle key={index}>
+                    <ItemDetailStyle>
+                      <button type="button">
+                        <img src={item.image} alt="상품이미지" />
+                      </button>
+                      <ItemInfoStyle>
+                        <p>{item.store_name}</p>
+                        <p>{item.product_name}</p>
+                        <p>수량 : {item.quantity}개</p>
+                      </ItemInfoStyle>
+                    </ItemDetailStyle>
+                    <span>-</span>
+                    <span>{itemShippingFee}원</span>
+                    <strong>{formattedItemPrice}원</strong>
+                  </OrderItemStyle>
+                );
+              })}
+              <TotalPriceStyle>
+                <p>총 주문금액</p>
+                <strong>{cartFormattedFinalTotalPrice}원</strong>
+              </TotalPriceStyle>
+            </>
+          )}
         </OrderItemsContainerStyle>
         <DeliveryInfoContainerStyle>
           <h3>배송정보</h3>
@@ -150,10 +192,23 @@ export default function Order() {
                     <span>-</span>상품금액
                   </p>
                 </div>
-                <div className="price-txt">
-                  <strong>46,500</strong>
-                  <span>원</span>
-                </div>
+
+                {orderkind === "direct_order" ||
+                orderkind === "cart_one_order" ? (
+                  <>
+                    <div className="price-txt">
+                      <strong>{formattedPrice}</strong>
+                      <span>원</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="price-txt">
+                      <strong>{formattedCartTotalItemPrice}</strong>
+                      <span>원</span>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="content-discount">
                 <div className="content-txt">
@@ -172,10 +227,23 @@ export default function Order() {
                     <span>-</span>배송비
                   </p>
                 </div>
-                <div className="price-txt">
-                  <strong>0</strong>
-                  <span>원</span>
-                </div>
+
+                {orderkind === "direct_order" ||
+                orderkind === "cart_one_order" ? (
+                  <>
+                    <div className="price-txt">
+                      <strong>{shippingFee}</strong>
+                      <span>원</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="price-txt">
+                      <strong>{formattedCartOrderTotalShippingFee}</strong>
+                      <span>원</span>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="content-payment">
                 <div className="content-txt">
@@ -183,7 +251,16 @@ export default function Order() {
                     <span>-</span>결제금액
                   </p>
                 </div>
-                <strong>46,500원</strong>
+                {orderkind === "direct_order" ||
+                orderkind === "cart_one_order" ? (
+                  <>
+                    <strong>{formattedFinalTotalPrice}원</strong>
+                  </>
+                ) : (
+                  <>
+                    <strong>{cartFormattedFinalTotalPrice}원</strong>
+                  </>
+                )}
               </div>
               <ContentAgreementStyle>
                 <button type="button">
