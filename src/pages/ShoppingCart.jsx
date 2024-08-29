@@ -9,6 +9,7 @@ import deleteBtn from "../assets/images/icon-delete.svg";
 import { useAuth } from "../context/AuthContext";
 import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
+import { useOrder } from "../context/OrderContext";
 import Modal from "../components/Modal";
 import QuantityControl from "../components/QuantityControl";
 
@@ -16,11 +17,12 @@ export default function ShoppingCart() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const { token } = useAuth();
-  const { products, setSelectedProduct } = useProduct();
+  const { products, selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
+  const { setOrderkind } = useOrder();
   const [totalAmount, setTotalAmount] = useState(0);
   const [productDiscount] = useState(0);
-  const [deliveryFee] = useState(0);
+  const [deliveryFee, setDeliveryFee] = useState(0);
   const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTxt, setModalTxt] = useState("");
@@ -89,13 +91,19 @@ export default function ShoppingCart() {
     return "0";
   };
 
-  // 상품의 총 금액 구하기
+  // 상품의 총 금액 및 배송비 구하기
   useEffect(() => {
     const total = cartItemsIntersection.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0
     );
     setTotalAmount(total);
+
+    const totalDeliveryFee = cartItemsIntersection.reduce(
+      (acc, item) => acc + item.shipping_fee,
+      0
+    );
+    setDeliveryFee(totalDeliveryFee);
   }, [cartItemsIntersection]);
 
   // 상품 이미지 클릭하면 상세페이지로 이동
@@ -148,7 +156,7 @@ export default function ShoppingCart() {
 
   useEffect(() => {
     console.log("Cart Items Intersection:", cartItemsIntersection);
-  }, [cartItemsIntersection]);
+  }, [cartItemsIntersection, selectedProduct]);
 
   // 장바구니 개별 삭제하기
   const individualDeleteCartItems = (cartItemId) => {
@@ -299,7 +307,9 @@ export default function ShoppingCart() {
                         checked={selectedCartItemIds.includes(
                           item.cart_item_id
                         )}
-                        onChange={() => handleSelect(item.cart_item_id)}
+                        onChange={() => {
+                          handleSelect(item.cart_item_id);
+                        }}
                       />
                       <label htmlFor={id}></label>
                     </div>
@@ -315,9 +325,7 @@ export default function ShoppingCart() {
                       <p>{item.store_name}</p>
                       <p>{item.product_name}</p>
                       <strong>{formatPrice(item.price)}원</strong>
-                      <p>
-                        택배배송<span>/</span>무료배송
-                      </p>
+                      <p>{item.shipping_fee.toLocaleString()}원</p>
                     </div>
                     <div
                       onClick={() => {
@@ -351,6 +359,8 @@ export default function ShoppingCart() {
                       <button
                         onClick={() => {
                           navigate("/order");
+                          setSelectedProduct(item);
+                          setOrderkind("cart_one_order");
                         }}
                         type="button"
                       >
@@ -403,6 +413,7 @@ export default function ShoppingCart() {
                 <button
                   onClick={() => {
                     navigate("/order");
+                    setOrderkind("cart_order");
                   }}
                   type="button"
                 >

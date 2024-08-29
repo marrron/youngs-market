@@ -10,12 +10,14 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Modal from "../components/Modal";
 import Instruction from "../components/Instruction";
+import { useOrder } from "../context/OrderContext";
 
 export default function ProductDetail() {
   const navigate = useNavigate();
-  const { selectedProduct } = useProduct();
+  const { selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection } = useCartItems();
   const { token } = useAuth();
+  const { setOrderkind } = useOrder();
   const [quantity, setQuantity] = useState(1);
   const [activeBtn, setActiveBtn] = useState("버튼");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,7 +84,7 @@ export default function ProductDetail() {
     );
 
     if (token) {
-      if (cartQuantity == 0) {
+      if (cartQuantity === 0) {
         setModalTxt(
           <>
             장바구니에 상품을 담았습니다.
@@ -158,13 +160,20 @@ export default function ProductDetail() {
     const filteredCartItem = cartItemsIntersection.filter(
       (item) => item.product_id === selectedProduct.product_id
     );
+
+    setSelectedProduct((prevProduct) => ({
+      ...prevProduct,
+      quantity: quantity,
+    }));
+
     setInCartItem(filteredCartItem);
     console.log(filteredCartItem, selectedProduct.product_id);
-  }, [cartItemsIntersection, selectedProduct.product_id]);
+  }, [cartItemsIntersection, selectedProduct.product_i, quantity]);
 
   // 바로구매 버튼
   const handleBuyNowBtnClick = () => {
     if (token) {
+      setOrderkind("direct_order");
       navigate("/order");
     } else {
       openModal();

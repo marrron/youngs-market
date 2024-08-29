@@ -9,6 +9,7 @@ import ShoppingCart from "../pages/ShoppingCart";
 import Order from "../pages/Order";
 import MyPage from "../pages/MyPage";
 import SellerCenter from "../pages/SellerCenter";
+import PaymentCompleted from "../pages/PaymentCompleted";
 
 export default function Router() {
   return (
@@ -23,6 +24,7 @@ export default function Router() {
         <Route path="/order" element={<Order />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/sellercenter" element={<SellerCenter />} />
+        <Route path="/paymentcompleted" element={<PaymentCompleted />} />
       </Routes>
     </BrowserRouter>
   );
