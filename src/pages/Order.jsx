@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -10,6 +11,7 @@ import { useProduct } from "../context/ProductContext";
 import { useCartItems } from "../context/CartContext";
 
 export default function Order() {
+  const navigate = useNavigate();
   const { token } = useAuth();
   const { selectedProduct } = useProduct();
   const { orderkind } = useOrder();
@@ -178,6 +180,7 @@ export default function Order() {
 
       const data = await response.json();
       console.log("Order created successfully:", data);
+      navigate("/paymentcompleted");
       return data;
     } catch (error) {
       console.error("Error creating order:", error);
@@ -220,6 +223,7 @@ export default function Order() {
 
       const data = await response.json();
       console.log("Order created successfully:", data);
+      navigate("/paymentcompleted");
       return data;
     } catch (error) {
       console.error("Error creating order:", error);
@@ -258,6 +262,7 @@ export default function Order() {
 
       const data = await response.json();
       console.log("Order created successfully:", data);
+      navigate("/paymentcompleted");
       return data;
     } catch (error) {
       console.error("Error creating order:", error);
