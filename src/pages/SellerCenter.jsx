@@ -1,10 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import styled from "styled-components";
 import iconPlus from "../assets/images/icon-plus.svg";
+import { useAuth } from "../context/AuthContext";
 
 export default function SellerCenter() {
+  const { token } = useAuth();
+  const [products, setProducts] = useState([]);
+
+  const getProducts = () => {
+    fetch("https://openmarket.weniv.co.kr/seller/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data.results);
+        setProducts(data.results);
+      })
+      .catch((error) => console.error("Error fetching products:", error));
+  };
+
+  useEffect(() => {
+    getProducts();
+  }, []);
+
   return (
     <>
       <Header />
@@ -23,7 +47,7 @@ export default function SellerCenter() {
           <nav>
             <ul>
               <li>
-                <Link>판매중인 상품(3)</Link>
+                <Link>판매중인 상품({products.length})</Link>
               </li>
               <li>
                 <Link>주문/배송</Link>
@@ -50,45 +74,20 @@ export default function SellerCenter() {
               <span>삭제</span>
             </div>
             <ul>
-              <li>
-                <img
-                  src="https://openmarket.weniv.co.kr/media/products/2024/06/25/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2024-06-24_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_11.56.21.png"
-                  alt=""
-                />
-                <div>
-                  <p>딥러닝 개발자 무릎 담요</p>
-                  <span>재고 : 370개</span>
-                </div>
-                <strong>17,500원</strong>
-                <button type="button">수정</button>
-                <button type="button">삭제</button>
-              </li>
-              <li>
-                <img
-                  src="https://openmarket.weniv.co.kr/media/products/2024/06/25/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2024-06-24_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_11.56.21.png"
-                  alt=""
-                />
-                <div>
-                  <p>딥러닝 개발자 무릎 담요</p>
-                  <span>재고 : 370개</span>
-                </div>
-                <strong>17,500원</strong>
-                <button type="button">수정</button>
-                <button type="button">삭제</button>
-              </li>
-              <li>
-                <img
-                  src="https://openmarket.weniv.co.kr/media/products/2024/06/25/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2024-06-24_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_11.56.21.png"
-                  alt=""
-                />
-                <div>
-                  <p>딥러닝 개발자 무릎 담요</p>
-                  <span>재고 : 370개</span>
-                </div>
-                <strong>17,500원</strong>
-                <button type="button">수정</button>
-                <button type="button">삭제</button>
-              </li>
+              {products.map((product, index) => {
+                return (
+                  <li key={index}>
+                    <img src={product.image} alt="" />
+                    <div>
+                      <p>{product.product_name}</p>
+                      <span>재고 : {product.stock}개</span>
+                    </div>
+                    <strong>{product.price.toLocaleString()}원</strong>
+                    <button type="button">수정</button>
+                    <button type="button">삭제</button>
+                  </li>
+                );
+              })}
             </ul>
           </SalesProductsBoxStyle>
         </MainContentStyle>
@@ -136,7 +135,7 @@ const LogoBoxStyle = styled.div`
 
 const MainContentStyle = styled.div`
   display: grid;
-  grid-template-columns: 250px 1400px;
+  grid-template-columns: 250px 1422px;
   gap: 30px;
   padding-top: 42px;
 
