@@ -154,7 +154,7 @@ export default function Order() {
 
       receiver: recipientName,
       receiver_phone_number: Object.values(recipientPhone).join(""),
-      address: Object.values(address).join(""),
+      address: Object.values(address).join(" "),
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
       total_price:
@@ -200,7 +200,7 @@ export default function Order() {
 
       receiver: recipientName,
       receiver_phone_number: Object.values(recipientPhone).join(""),
-      address: Object.values(address).join(""),
+      address: Object.values(address).join(" "),
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
     };
