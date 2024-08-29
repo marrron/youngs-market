@@ -8,7 +8,14 @@ import { useAuth } from "../context/AuthContext";
 export default function SellerCenter() {
   const { token } = useAuth();
   const [products, setProducts] = useState([]);
+  const [activeNavItem, setActiveNavItem] = useState("판매중인 상품");
 
+  // navbar
+  const handleNavItemClick = (item) => {
+    setActiveNavItem(item);
+  };
+
+  // 판매상품 목록 GET
   const getProducts = () => {
     fetch("https://openmarket.weniv.co.kr/seller/", {
       method: "GET",
@@ -46,22 +53,37 @@ export default function SellerCenter() {
         <MainContentStyle>
           <nav>
             <ul>
-              <li>
+              <li
+                className={activeNavItem === "판매중인 상품" ? "active" : ""}
+                onClick={() => handleNavItemClick("판매중인 상품")}
+              >
                 <Link>판매중인 상품({products.length})</Link>
               </li>
-              <li>
+              <li
+                className={activeNavItem === "주문/배송" ? "active" : ""}
+                onClick={() => handleNavItemClick("주문/배송")}
+              >
                 <Link>주문/배송</Link>
                 <span>2</span>
               </li>
-              <li>
+              <li
+                className={activeNavItem === "문의/리뷰" ? "active" : ""}
+                onClick={() => handleNavItemClick("문의/리뷰")}
+              >
                 <Link>문의/리뷰</Link>
                 <span>1</span>
               </li>
-              <li>
+              <li
+                className={activeNavItem === "통계" ? "active" : ""}
+                onClick={() => handleNavItemClick("통계")}
+              >
                 <Link>통계</Link>
                 <span>1</span>
               </li>
-              <li>
+              <li
+                className={activeNavItem === "스토어 설정" ? "active" : ""}
+                onClick={() => handleNavItemClick("스토어 설정")}
+              >
                 <Link>스토어 설정</Link>
               </li>
             </ul>
@@ -149,6 +171,12 @@ const MainContentStyle = styled.div`
         margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
+
+        &.active {
+          background-color: var(--color-maroon);
+          color: var(--color-bg);
+          border-radius: 5px;
+        }
 
         &:active {
           background-color: var(--color-orange);
