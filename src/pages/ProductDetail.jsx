@@ -16,7 +16,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection } = useCartItems();
-  const { token } = useAuth();
+  const { token, loginType } = useAuth();
   const { setOrderkind } = useOrder();
   const [quantity, setQuantity] = useState(1);
   const [activeBtn, setActiveBtn] = useState("버튼");
@@ -83,7 +83,7 @@ export default function ProductDetail() {
       cartItemsIntersection
     );
 
-    if (token) {
+    if (token && loginType === "BUYER") {
       if (cartQuantity === 0) {
         setModalTxt(
           <>
@@ -105,13 +105,22 @@ export default function ProductDetail() {
         openModal();
         putInShoppingCart();
       }
-    } else {
+    } else if (!token && loginType === "BUYER") {
       openModal();
       setModalTxt(
         <>
           로그인이 필요한 서비스입니다.
           <br />
           로그인하시겠습니까?
+        </>
+      );
+    } else if (loginType === "SELLER") {
+      openModal();
+      setModalTxt(
+        <>
+          구매자 로그인 시만 가능합니다.
+          <br />
+          로그아웃 하시겠습니까?
         </>
       );
     }
@@ -172,16 +181,25 @@ export default function ProductDetail() {
 
   // 바로구매 버튼
   const handleBuyNowBtnClick = () => {
-    if (token) {
+    if (token && loginType === "BUYER") {
       setOrderkind("direct_order");
       navigate("/order");
-    } else {
+    } else if (!token && loginType === "BUYER") {
       openModal();
       setModalTxt(
         <>
           로그인이 필요한 서비스입니다.
           <br />
           로그인하시겠습니까?
+        </>
+      );
+    } else if (loginType === "SELLER") {
+      openModal();
+      setModalTxt(
+        <>
+          구매자 로그인 시만 가능합니다.
+          <br />
+          로그아웃 하시겠습니까?
         </>
       );
     }
