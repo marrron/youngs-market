@@ -31,11 +31,7 @@ export default function Header() {
   };
 
   const handleSellerCenterBtnClick = () => {
-    if (location.pathname === "/sellercenter") {
-      navigate("/sellercenter");
-    } else if (location.pathname === "/productupload") {
-      navigate("/productupload");
-    }
+    navigate("/sellercenter");
   };
 
   const isShoppingCartPage = location.pathname === "/shoppingcart";
