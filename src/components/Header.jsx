@@ -31,7 +31,11 @@ export default function Header() {
   };
 
   const handleSellerCenterBtnClick = () => {
-    navigate("/sellercenter");
+    if (location.pathname === "/sellercenter") {
+      navigate("/sellercenter");
+    } else if (location.pathname === "/productupload") {
+      navigate("/productupload");
+    }
   };
 
   const isShoppingCartPage = location.pathname === "/shoppingcart";
@@ -43,7 +47,8 @@ export default function Header() {
 
   return (
     <>
-      {location.pathname === "/sellercenter" ? (
+      {location.pathname === "/sellercenter" ||
+      location.pathname === "/productupload" ? (
         <SellerCenterHeaderStyle>
           <button
             className="main-logo"

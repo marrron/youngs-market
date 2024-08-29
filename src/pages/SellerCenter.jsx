@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import styled from "styled-components";
@@ -6,6 +7,7 @@ import iconPlus from "../assets/images/icon-plus.svg";
 import { useAuth } from "../context/AuthContext";
 
 export default function SellerCenter() {
+  const navigate = useNavigate();
   const { token } = useAuth();
   const [products, setProducts] = useState([]);
   const [activeNavItem, setActiveNavItem] = useState("판매중인 상품");
@@ -45,7 +47,12 @@ export default function SellerCenter() {
             <h2>대시보드</h2>
             <strong>백엔드글로벌</strong>
           </div>
-          <button type="button">
+          <button
+            type="button"
+            onClick={() => {
+              navigate("/productupload");
+            }}
+          >
             <img src={iconPlus} alt="상품등록버튼" />
             상품 업로드
           </button>
