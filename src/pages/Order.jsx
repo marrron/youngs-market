@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -32,6 +32,7 @@ export default function Order() {
   const [deliveryMessage, setDeliveryMessage] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [isAgree, setIsAgree] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   console.log(
     ordererName,
@@ -44,6 +45,43 @@ export default function Order() {
     selectedPaymentMethod,
     isAgree
   );
+
+  // 모든 입력값이 작성
+  useEffect(() => {
+    const checkCompletion = () => {
+      if (
+        ordererName &&
+        ordererPhone.part1 &&
+        ordererPhone.part2 &&
+        ordererPhone.part3 &&
+        ordererEmail &&
+        recipientName &&
+        recipientPhone.part1 &&
+        recipientPhone.part2 &&
+        recipientPhone.part3 &&
+        address.zip &&
+        address.street &&
+        address.detail &&
+        deliveryMessage &&
+        selectedPaymentMethod
+      ) {
+        setIsCompleted(true);
+      } else {
+        setIsCompleted(false);
+      }
+    };
+
+    checkCompletion();
+  }, [
+    ordererName,
+    ordererPhone,
+    ordererEmail,
+    recipientName,
+    recipientPhone,
+    address,
+    deliveryMessage,
+    selectedPaymentMethod,
+  ]);
 
   // direct_order or cart_one_order
   const shippingFee = selectedProduct.shipping_fee.toLocaleString();
@@ -592,10 +630,12 @@ export default function Order() {
                 </span>
                 <button
                   style={{
-                    backgroundColor: isAgree
-                      ? "var(--color-orange)"
-                      : "var(--color-maroon)",
+                    backgroundColor:
+                      isAgree && isCompleted
+                        ? "var(--color-orange)"
+                        : "var(--color-maroon)",
                   }}
+                  disabled={!isAgree}
                   type="button"
                   onClick={handlePaymentBtnClick}
                 >
@@ -1107,6 +1147,10 @@ const ContentAgreementStyle = styled.div`
       font-size: 24px;
       color: var(--color-bg);
       margin-top: 30px;
+
+      &:disabled {
+        cursor: not-allowed;
+      }
     }
   }
 
