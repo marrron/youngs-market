@@ -105,30 +105,43 @@ export default function SellerCenter() {
               <span>수정</span>
               <span>삭제</span>
             </div>
+
             <ul>
-              {products.map((product, index) => {
-                return (
-                  <li key={index}>
-                    <img src={product.image} alt="" />
-                    <div>
-                      <p>{product.product_name}</p>
-                      <span>재고 : {product.stock}개</span>
-                    </div>
-                    <strong>{product.price.toLocaleString()}원</strong>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingProduct(product);
-                        setIsEditing(true);
-                        navigate("/productupload");
-                      }}
-                    >
-                      수정
-                    </button>
-                    <button type="button">삭제</button>
-                  </li>
-                );
-              })}
+              {activeNavItem === "판매중인 상품" && (
+                <>
+                  {products.map((product, index) => {
+                    return (
+                      <li key={index}>
+                        <img src={product.image} alt="" />
+                        <div>
+                          <p>{product.product_name}</p>
+                          <span>재고 : {product.stock}개</span>
+                        </div>
+                        <strong>{product.price.toLocaleString()}원</strong>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setIsEditing(true);
+                            navigate("/productupload");
+                          }}
+                        >
+                          수정
+                        </button>
+                        <button type="button">삭제</button>
+                      </li>
+                    );
+                  })}
+                </>
+              )}
+
+              {activeNavItem === "주문/배송" && <div>주문/배송</div>}
+
+              {activeNavItem === "문의/리뷰" && <div>문의/리뷰</div>}
+
+              {activeNavItem === "통계" && <div>통계</div>}
+
+              {activeNavItem === "스토어 설정" && <div>스토어 설정</div>}
             </ul>
           </SalesProductsBoxStyle>
         </MainContentStyle>
