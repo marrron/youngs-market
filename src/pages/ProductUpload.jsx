@@ -1,26 +1,42 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import styled from "styled-components";
 import iconImg from "../assets/images/icon-img.svg";
+import { useAuth } from "../context/AuthContext";
+import { useSeller } from "../context/SellerContext";
 
 export default function ProductUpload() {
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
+  const { token } = useAuth();
+  const { editingProduct, isEditing } = useSeller();
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [productName, setProductName] = useState("");
   const [price, setPrice] = useState("");
   const [shippingMethod, setShippingMethod] = useState("");
   const [shippingFee, setShippingFee] = useState("");
   const [stock, setStock] = useState("");
   const [productInfo, setProductInfo] = useState("");
+  const [editProduct, setEditProduct] = useState({
+    image: "",
+    product_name: "",
+    price: 0,
+    shipping_fee: 0,
+    stock: 0,
+    product_info: "",
+  });
 
-  console.log(
-    productName,
-    price,
-    shippingMethod,
-    shippingFee,
-    stock,
-    productInfo
-  );
+  // console.log(
+  //   imageFile,
+  //   productName,
+  //   price,
+  //   shippingMethod,
+  //   shippingFee,
+  //   stock,
+  //   productInfo
+  // );
 
   // img업로드 버튼
   const handleImageUploadBtnClick = () => {
@@ -31,6 +47,7 @@ export default function ProductUpload() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -63,6 +80,107 @@ export default function ProductUpload() {
     const rawValue = e.target.value.replace(/,/g, "");
     const formattedValue = formatNumber(rawValue);
     setStock(formattedValue);
+  };
+
+  // 저장하기 버튼
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (isEditing) {
+      putEditingProduct();
+    } else {
+      const formData = {
+        product_name: productName,
+        image: imageFile,
+        price: parseInt(price.replace(/,/g, ""), 10),
+        shipping_method: shippingMethod,
+        shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+        stock: parseInt(stock.replace(/,/g, ""), 10),
+        product_info: productInfo,
+      };
+
+      fetch("https://openmarket.weniv.co.kr/products/", {
+        method: "POST",
+        headers: {
+          Authorization: `JWT ${token}`,
+        },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((error) => console.error("Fetch Error:", error));
+    }
+  };
+
+  // 상품디테일
+  const getSellingProduct = () => {
+    fetch(
+      `https://openmarket.weniv.co.kr/products/${editingProduct.product_id}`,
+      {
+        method: "GET",
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setEditProduct(data);
+      })
+      .catch((error) => console.error("Fetch Error:", error));
+  };
+
+  useEffect(() => {
+    if (isEditing) {
+      getSellingProduct();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (editProduct && isEditing) {
+      setProductName(editProduct.product_name || "");
+      setPrice(editProduct.price ? editProduct.price.toLocaleString() : "");
+      setShippingMethod(editProduct.shipping_method || "");
+      setShippingFee(
+        editProduct.shipping_fee
+          ? editProduct.shipping_fee.toLocaleString()
+          : ""
+      );
+      setStock(editProduct.stock ? editProduct.stock.toLocaleString() : "");
+      setProductInfo(editProduct.product_info || "");
+      setImagePreview(editProduct.image || null);
+    }
+  }, [editProduct, isEditing]);
+
+  // 상품 수정
+  const putEditingProduct = () => {
+    const formData = {
+      product_name: productName,
+      price: parseInt(price.replace(/,/g, ""), 10),
+      shipping_method: shippingMethod,
+      shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+      stock: parseInt(stock.replace(/,/g, ""), 10),
+      product_info: productInfo,
+    };
+
+    fetch(
+      `https://openmarket.weniv.co.kr/products/${editingProduct.product_id}/`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `JWT ${token}`,
+        },
+        body: JSON.stringify(formData),
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setEditProduct(data);
+        navigate("/sellercenter");
+      })
+      .catch((error) => console.error("Fetch Error:", error));
   };
 
   return (
@@ -103,95 +221,107 @@ export default function ProductUpload() {
             </div>
           </div>
           <div>
-            <ProductBasicInfoStyle>
-              <li>
-                <label>상품 이미지</label>
-                <div>
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="상품 미리보기" />
-                  ) : (
-                    <button type="button" onClick={handleImageUploadBtnClick}>
-                      <img src={iconImg} alt="이미지업로드버튼" />
+            <>
+              <form onSubmit={handleSubmit}>
+                <ProductBasicInfoStyle>
+                  <li>
+                    <label>상품 이미지</label>
+                    <div>
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="상품 미리보기" />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleImageUploadBtnClick}
+                        >
+                          <img src={iconImg} alt="이미지업로드버튼" />
+                        </button>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        id="fileInput"
+                        onChange={handleImageChange}
+                      />
+                    </div>
+                  </li>
+                  <li>
+                    <label htmlFor="productName">상품명</label>
+                    <input
+                      type="text"
+                      id="productName"
+                      value={productName}
+                      onChange={(e) => setProductName(e.target.value)}
+                      maxLength="20"
+                    />
+                    <span>{productName.length}/20</span>
+                  </li>
+                  <li>
+                    <label htmlFor="price">판매가</label>
+                    <input
+                      type="text"
+                      id="price"
+                      value={price}
+                      onChange={handlePriceChange}
+                    />
+                    <span>원</span>
+                  </li>
+                  <li>
+                    <label>배송방법</label>
+                    <button
+                      type="button"
+                      onClick={() => setShippingMethod("PARCEL")}
+                    >
+                      택배,소포,등기
                     </button>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    id="fileInput"
-                    onChange={handleImageChange}
-                  />
-                </div>
-              </li>
-              <li>
-                <label htmlFor="productName">상품명</label>
-                <input
-                  type="text"
-                  id="productName"
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  maxLength="20"
-                />
-                <span>{productName.length}/20</span>
-              </li>
-              <li>
-                <label htmlFor="price">판매가</label>
-                <input
-                  type="text"
-                  id="price"
-                  value={price}
-                  onChange={handlePriceChange}
-                />
-                <span>원</span>
-              </li>
-              <li>
-                <label>배송방법</label>
-                <button
-                  type="button"
-                  onClick={() => setShippingMethod("PARCEL")}
-                >
-                  택배,소포,등기
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShippingMethod("DELIVERY")}
-                >
-                  직접배송(화물배달)
-                </button>
-              </li>
-              <li>
-                <label htmlFor="shippingFee">기본 배송비</label>
-                <input
-                  type="text"
-                  value={shippingFee}
-                  id="shippingFee"
-                  onChange={handleShippingFeeChange}
-                />
-                <span>원</span>
-              </li>
-              <li>
-                <label htmlFor="stock">재고</label>
-                <input
-                  type="text"
-                  value={stock}
-                  id="stock"
-                  onChange={handleStockChange}
-                />
-                <span>개</span>
-              </li>
-            </ProductBasicInfoStyle>
-            <ProductDetailInfoStyle>
-              <label htmlFor="productInfo">상품 상세 정보</label>
-              <textarea
-                value={productInfo}
-                id="productInfo"
-                onChange={(e) => setProductInfo(e.target.value)}
-              ></textarea>
-              <p>에디터 영역</p>
-              <div>
-                <button type="button">취소</button>
-                <button type="button">저장하기</button>
-              </div>
-            </ProductDetailInfoStyle>
+                    <button
+                      type="button"
+                      onClick={() => setShippingMethod("DELIVERY")}
+                    >
+                      직접배송(화물배달)
+                    </button>
+                  </li>
+                  <li>
+                    <label htmlFor="shippingFee">기본 배송비</label>
+                    <input
+                      type="text"
+                      value={shippingFee}
+                      id="shippingFee"
+                      onChange={handleShippingFeeChange}
+                    />
+                    <span>원</span>
+                  </li>
+                  <li>
+                    <label htmlFor="stock">재고</label>
+                    <input
+                      type="text"
+                      value={stock}
+                      id="stock"
+                      onChange={handleStockChange}
+                    />
+                    <span>개</span>
+                  </li>
+                </ProductBasicInfoStyle>
+                <ProductDetailInfoStyle>
+                  <label htmlFor="productInfo">상품 상세 정보</label>
+                  <textarea
+                    value={productInfo}
+                    id="productInfo"
+                    onChange={(e) => setProductInfo(e.target.value)}
+                  ></textarea>
+                  <p>에디터 영역</p>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/sellercenter")}
+                    >
+                      취소
+                    </button>
+                    <button type="submit">저장하기</button>
+                  </div>
+                </ProductDetailInfoStyle>
+              </form>
+            </>
           </div>
         </MainContentStyle>
       </MainStyle>
