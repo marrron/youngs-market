@@ -5,10 +5,12 @@ import Header from "../components/Header";
 import styled from "styled-components";
 import iconPlus from "../assets/images/icon-plus.svg";
 import { useAuth } from "../context/AuthContext";
+import { useSeller } from "../context/SellerContext";
 
 export default function SellerCenter() {
   const navigate = useNavigate();
   const { token } = useAuth();
+  const { setEditingProduct, setIsEditing } = useSeller();
   const [products, setProducts] = useState([]);
   const [activeNavItem, setActiveNavItem] = useState("판매중인 상품");
 
@@ -51,6 +53,7 @@ export default function SellerCenter() {
             type="button"
             onClick={() => {
               navigate("/productupload");
+              setIsEditing(false);
             }}
           >
             <img src={iconPlus} alt="상품등록버튼" />
@@ -112,7 +115,16 @@ export default function SellerCenter() {
                       <span>재고 : {product.stock}개</span>
                     </div>
                     <strong>{product.price.toLocaleString()}원</strong>
-                    <button type="button">수정</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingProduct(product);
+                        setIsEditing(true);
+                        navigate("/productupload");
+                      }}
+                    >
+                      수정
+                    </button>
                     <button type="button">삭제</button>
                   </li>
                 );
