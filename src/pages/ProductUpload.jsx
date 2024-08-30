@@ -39,6 +39,32 @@ export default function ProductUpload() {
     }
   };
 
+  // 가격 형식
+  const formatNumber = (value) => {
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  // price Input
+  const handlePriceChange = (e) => {
+    const rawValue = e.target.value.replace(/,/g, "");
+    const formattedValue = formatNumber(rawValue);
+    setPrice(formattedValue);
+  };
+
+  // shippingfee input
+  const handleShippingFeeChange = (e) => {
+    const rawValue = e.target.value.replace(/,/g, "");
+    const formattedValue = formatNumber(rawValue);
+    setShippingFee(formattedValue);
+  };
+
+  // stock input
+  const handleStockChange = (e) => {
+    const rawValue = e.target.value.replace(/,/g, "");
+    const formattedValue = formatNumber(rawValue);
+    setStock(formattedValue);
+  };
+
   return (
     <>
       <Header />
@@ -113,7 +139,7 @@ export default function ProductUpload() {
                   type="text"
                   id="price"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={handlePriceChange}
                 />
                 <span>원</span>
               </li>
@@ -138,7 +164,7 @@ export default function ProductUpload() {
                   type="text"
                   value={shippingFee}
                   id="shippingFee"
-                  onChange={(e) => setShippingFee(e.target.value)}
+                  onChange={handleShippingFeeChange}
                 />
                 <span>원</span>
               </li>
@@ -148,9 +174,9 @@ export default function ProductUpload() {
                   type="text"
                   value={stock}
                   id="stock"
-                  onChange={(e) => setStock(e.target.value)}
+                  onChange={handleStockChange}
                 />
-                <span>원</span>
+                <span>개</span>
               </li>
             </ProductBasicInfoStyle>
             <ProductDetailInfoStyle>
