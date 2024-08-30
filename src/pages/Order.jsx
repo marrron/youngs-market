@@ -154,7 +154,7 @@ export default function Order() {
 
       receiver: recipientName,
       receiver_phone_number: Object.values(recipientPhone).join(""),
-      address: Object.values(address).join(""),
+      address: Object.values(address).join(" "),
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
       total_price:
@@ -200,7 +200,7 @@ export default function Order() {
 
       receiver: recipientName,
       receiver_phone_number: Object.values(recipientPhone).join(""),
-      address: Object.values(address).join(""),
+      address: Object.values(address).join(" "),
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
     };
@@ -668,7 +668,7 @@ const MainStyle = styled.main`
   }
 `;
 
-const InfoTxtStyle = styled.div`
+export const InfoTxtStyle = styled.div`
   display: grid;
   grid-template-columns: 2.2fr 1fr 1fr 1fr;
   width: 1280px;
@@ -689,7 +689,7 @@ const OrderItemsContainerStyle = styled.div`
   gap: 16px;
 `;
 
-const OrderItemStyle = styled.div`
+export const OrderItemStyle = styled.div`
   display: grid;
   grid-template-columns: 2.2fr 1fr 1fr 1fr;
   align-items: center;
@@ -713,7 +713,7 @@ const OrderItemStyle = styled.div`
   }
 `;
 
-const ItemDetailStyle = styled.div`
+export const ItemDetailStyle = styled.div`
   display: flex;
   gap: 36px;
 
@@ -727,7 +727,7 @@ const ItemDetailStyle = styled.div`
   }
 `;
 
-const ItemInfoStyle = styled.div`
+export const ItemInfoStyle = styled.div`
   padding: 12px 0;
 
   p {

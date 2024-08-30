@@ -17,13 +17,16 @@ export default function Modal({
   handleQuantityControl,
 }) {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, loginType } = useAuth();
 
   const defaultHandleRightBtnClick = () => {
     if (!token) {
       navigate("/login");
-    } else {
+    } else if (token && loginType === "BUYER") {
       navigate("/shoppingcart");
+    } else if (token && loginType === "SELLER") {
+      localStorage.removeItem("token");
+      navigate("/login");
     }
   };
 

@@ -42,67 +42,83 @@ export default function Header() {
   const cartTextColor = isShoppingCartPage ? "var(--color-orange)" : "inherit";
 
   return (
-    <HeaderStyle>
-      <SearchContainerStyle>
-        <button
-          className="main-logo"
-          type="button"
-          onClick={handleLogoButtonClick}
-        >
-          <img src={logo} alt="로고" />
-        </button>
-        <input
-          id="input-search"
-          type="text"
-          placeholder="상품을 검색해보세요!"
-        />
-        <button className="btn-search">
-          <img src={iconSearch} alt="상품검색" />
-        </button>
-      </SearchContainerStyle>
-      <UserControlsStyle>
-        {loginType === "SELLER" && token ? (
-          <>
+    <>
+      {location.pathname === "/sellercenter" ||
+      location.pathname === "/productupload" ? (
+        <SellerCenterHeaderStyle>
+          <button
+            className="main-logo"
+            type="button"
+            onClick={handleLogoButtonClick}
+          >
+            <img src={logo} alt="로고" />
+          </button>
+          <h1>판매자 센터</h1>
+        </SellerCenterHeaderStyle>
+      ) : (
+        <HeaderStyle>
+          <SearchContainerStyle>
             <button
-              className="btn-user"
+              className="main-logo"
               type="button"
-              onClick={handleUserButtonClick}
+              onClick={handleLogoButtonClick}
             >
-              <img src={iconUser} alt="로그인" />
-              <p>마이페이지</p>
+              <img src={logo} alt="로고" />
             </button>
-            <button
-              className="btn-seller-center"
-              type="button"
-              onClick={handleSellerCenterBtnClick}
-            >
-              <img src={iconShoppingBag} alt="판매자센터" />
-              <span>판매자 센터</span>
+            <input
+              id="input-search"
+              type="text"
+              placeholder="상품을 검색해보세요!"
+            />
+            <button className="btn-search">
+              <img src={iconSearch} alt="상품검색" />
             </button>
-          </>
-        ) : (
-          <>
-            <button
-              className="btn-shopping-cart"
-              type="button"
-              onClick={handleShoppingCartButtonClick}
-            >
-              <img src={shoppingCartIcon} alt="장바구니" />
-              <p style={{ color: cartTextColor }}>장바구니</p>
-            </button>
+          </SearchContainerStyle>
+          <UserControlsStyle>
+            {loginType === "SELLER" && token ? (
+              <>
+                <button
+                  className="btn-user"
+                  type="button"
+                  onClick={handleUserButtonClick}
+                >
+                  <img src={iconUser} alt="로그인" />
+                  <p>마이페이지</p>
+                </button>
+                <button
+                  className="btn-seller-center"
+                  type="button"
+                  onClick={handleSellerCenterBtnClick}
+                >
+                  <img src={iconShoppingBag} alt="판매자센터" />
+                  <span>판매자 센터</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="btn-shopping-cart"
+                  type="button"
+                  onClick={handleShoppingCartButtonClick}
+                >
+                  <img src={shoppingCartIcon} alt="장바구니" />
+                  <p style={{ color: cartTextColor }}>장바구니</p>
+                </button>
 
-            <button
-              className="btn-user"
-              type="button"
-              onClick={handleUserButtonClick}
-            >
-              <img src={iconUser} alt="로그인" />
-              {token ? <p>마이페이지</p> : <p>로그인</p>}
-            </button>
-          </>
-        )}
-      </UserControlsStyle>
-    </HeaderStyle>
+                <button
+                  className="btn-user"
+                  type="button"
+                  onClick={handleUserButtonClick}
+                >
+                  <img src={iconUser} alt="로그인" />
+                  {token ? <p>마이페이지</p> : <p>로그인</p>}
+                </button>
+              </>
+            )}
+          </UserControlsStyle>
+        </HeaderStyle>
+      )}
+    </>
   );
 }
 
@@ -184,5 +200,21 @@ const UserControlsStyle = styled.div`
     span {
       font-size: 18px;
     }
+  }
+`;
+
+const SellerCenterHeaderStyle = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--color-partgrey);
+  padding: 18px 100px;
+  gap: 4px;
+
+  h1 {
+    font-size: 30px;
+    color: #000;
+    font-weight: bold;
+    transform: translateY(-6px);
   }
 `;
