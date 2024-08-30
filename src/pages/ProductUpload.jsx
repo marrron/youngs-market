@@ -1,9 +1,44 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import Header from "../components/Header";
 import styled from "styled-components";
 import iconImg from "../assets/images/icon-img.svg";
 
 export default function ProductUpload() {
+  const fileInputRef = useRef(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [productName, setProductName] = useState("");
+  const [price, setPrice] = useState("");
+  const [shippingMethod, setShippingMethod] = useState("");
+  const [shippingFee, setShippingFee] = useState("");
+  const [stock, setStock] = useState("");
+  const [productInfo, setProductInfo] = useState("");
+
+  console.log(
+    productName,
+    price,
+    shippingMethod,
+    shippingFee,
+    stock,
+    productInfo
+  );
+
+  // img업로드 버튼
+  const handleImageUploadBtnClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // 이미지 화면 표시
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -44,42 +79,87 @@ export default function ProductUpload() {
           <div>
             <ProductBasicInfoStyle>
               <li>
-                <h3>상품 이미지</h3>
+                <label>상품 이미지</label>
                 <div>
-                  <button>
-                    <img src={iconImg} alt="이미지업로드버튼" />
-                  </button>
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="상품 미리보기" />
+                  ) : (
+                    <button type="button" onClick={handleImageUploadBtnClick}>
+                      <img src={iconImg} alt="이미지업로드버튼" />
+                    </button>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    id="fileInput"
+                    onChange={handleImageChange}
+                  />
                 </div>
               </li>
               <li>
-                <h3>상품명</h3>
-                <input type="text" />
-                <span>13/20</span>
+                <label htmlFor="productName">상품명</label>
+                <input
+                  type="text"
+                  id="productName"
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  maxLength="20"
+                />
+                <span>{productName.length}/20</span>
               </li>
               <li>
-                <h3>판매가</h3>
-                <input type="text" />
+                <label htmlFor="price">판매가</label>
+                <input
+                  type="text"
+                  id="price"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
                 <span>원</span>
               </li>
               <li>
-                <h3>배송방법</h3>
-                <button type="button">택배,소포,등기</button>
-                <button type="button">직접배송(화물배달)</button>
+                <label>배송방법</label>
+                <button
+                  type="button"
+                  onClick={() => setShippingMethod("PARCEL")}
+                >
+                  택배,소포,등기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShippingMethod("DELIVERY")}
+                >
+                  직접배송(화물배달)
+                </button>
               </li>
               <li>
-                <h3>기본 배송비</h3>
-                <input type="text" />
+                <label htmlFor="shippingFee">기본 배송비</label>
+                <input
+                  type="text"
+                  value={shippingFee}
+                  id="shippingFee"
+                  onChange={(e) => setShippingFee(e.target.value)}
+                />
                 <span>원</span>
               </li>
               <li>
-                <h3>재고</h3>
-                <input type="text" />
+                <label htmlFor="stock">재고</label>
+                <input
+                  type="text"
+                  value={stock}
+                  id="stock"
+                  onChange={(e) => setStock(e.target.value)}
+                />
                 <span>원</span>
               </li>
             </ProductBasicInfoStyle>
             <ProductDetailInfoStyle>
-              <h3>상품 상세 정보</h3>
-              <textarea name="" id=""></textarea>
+              <label htmlFor="productInfo">상품 상세 정보</label>
+              <textarea
+                value={productInfo}
+                id="productInfo"
+                onChange={(e) => setProductInfo(e.target.value)}
+              ></textarea>
               <p>에디터 영역</p>
               <div>
                 <button type="button">취소</button>
@@ -106,7 +186,7 @@ const MainStyle = styled.main`
 
 const MainContentStyle = styled.div`
   display: grid;
-  grid-template-columns: 320px 1320px;
+  grid-template-columns: 320px 1300px;
   gap: 80px;
   padding-top: 42px;
 
@@ -145,10 +225,11 @@ const ProductBasicInfoStyle = styled.ul`
     "img stock";
   gap: 20px;
   li {
-    h3 {
+    label {
       font-size: 16px;
       color: var(--color-darkgrey);
       padding-bottom: 10px;
+      display: block;
     }
 
     input {
@@ -165,9 +246,24 @@ const ProductBasicInfoStyle = styled.ul`
       > div {
         width: 454px;
         height: 454px;
-        display: flex;
-        justify-content: center;
         background-color: var(--color-lightgrey);
+        position: relative;
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        button {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        input {
+          display: none;
+        }
       }
     }
 
@@ -243,10 +339,11 @@ const ProductBasicInfoStyle = styled.ul`
 
 const ProductDetailInfoStyle = styled.div`
   position: relative;
-  h3 {
+  label {
     font-size: 16px;
     color: var(--color-darkgrey);
     padding: 40px 0 10px 0;
+    display: block;
   }
 
   textarea {
