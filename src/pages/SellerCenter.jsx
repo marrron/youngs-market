@@ -6,13 +6,16 @@ import styled from "styled-components";
 import iconPlus from "../assets/images/icon-plus.svg";
 import { useAuth } from "../context/AuthContext";
 import { useSeller } from "../context/SellerContext";
+import Modal from "../components/Modal";
 
 export default function SellerCenter() {
   const navigate = useNavigate();
   const { token } = useAuth();
-  const { setEditingProduct, setIsEditing } = useSeller();
+  const { editingProduct, setEditingProduct, setIsEditing } = useSeller();
   const [products, setProducts] = useState([]);
   const [activeNavItem, setActiveNavItem] = useState("판매중인 상품");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTxt, setModalTxt] = useState("");
 
   // navbar
   const handleNavItemClick = (item) => {
@@ -40,8 +43,49 @@ export default function SellerCenter() {
     getProducts();
   }, []);
 
+  // 삭제하기
+  const handleDeleteBtnClick = () => {
+    console.log(editingProduct);
+    fetch(
+      `https://openmarket.weniv.co.kr/products/${editingProduct.product_id}/`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `JWT ${token}`,
+        },
+      }
+    )
+      .then((response) => {
+        if (response.ok) {
+          console.log("Product deleted successfully");
+          closeModal();
+          getProducts();
+        } else {
+          console.error("Failed to delete the product");
+        }
+      })
+      .catch((error) => console.error("Error fetching products:", error));
+  };
+
+  const openModal = (modalTxt) => {
+    setIsModalOpen(true);
+    setModalTxt(modalTxt);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <>
+      {isModalOpen && (
+        <Modal
+          closeModal={closeModal}
+          modalTxt={modalTxt}
+          handleRightBtnClick={handleDeleteBtnClick}
+        />
+      )}
       <Header />
       <MainStyle>
         <LogoBoxStyle>
@@ -128,7 +172,16 @@ export default function SellerCenter() {
                         >
                           수정
                         </button>
-                        <button type="button">삭제</button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setIsModalOpen(true);
+                            openModal("판매상품을 삭제하시겠습니까?");
+                          }}
+                        >
+                          삭제
+                        </button>
                       </li>
                     );
                   })}
