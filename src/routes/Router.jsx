@@ -11,23 +11,25 @@ import MyPage from "../pages/MyPage";
 import SellerCenter from "../pages/SellerCenter";
 import PaymentCompleted from "../pages/PaymentCompleted";
 import ProductUpload from "../pages/ProductUpload";
+import NotFound from "../pages/NotFound";
 
 export default function Router() {
-  return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Main />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/productdetail/:id" element={<ProductDetail />} />
-        <Route path="/shoppingcart" element={<ShoppingCart />} />
-        <Route path="/order" element={<Order />} />
-        <Route path="/mypage" element={<MyPage />} />
-        <Route path="/sellercenter" element={<SellerCenter />} />
-        <Route path="/paymentcompleted" element={<PaymentCompleted />} />
-        <Route path="/productupload" element={<ProductUpload />} />
-      </Routes>
-    </BrowserRouter>
-  );
+	return (
+		<BrowserRouter>
+			<ScrollToTop />
+			<Routes>
+				<Route path="/" element={<Main />} />
+				<Route path="/login" element={<Login />} />
+				<Route path="/signup" element={<SignUp />} />
+				<Route path="/productdetail/:id" element={<ProductDetail />} />
+				<Route path="/shoppingcart" element={<ShoppingCart />} />
+				<Route path="/order" element={<Order />} />
+				<Route path="/mypage" element={<MyPage />} />
+				<Route path="/sellercenter" element={<SellerCenter />} />
+				<Route path="/paymentcompleted" element={<PaymentCompleted />} />
+				<Route path="/productupload" element={<ProductUpload />} />
+				<Route path="/*" element={<NotFound />} />
+			</Routes>
+		</BrowserRouter>
+	);
 }
