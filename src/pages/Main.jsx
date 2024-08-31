@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "../context/ProductContext";
 import styled from "styled-components";
@@ -10,6 +10,8 @@ import ImageSlider from "../components/ImageSlider";
 export default function Main() {
   const navigate = useNavigate();
   const { products, setProducts, setSelectedProduct } = useProduct();
+  const [searchInputValue, setSearchInputValue] = useState("");
+  console.log(searchInputValue.length);
 
   // 상품 전체 불러오기
   const getProducts = () => {
@@ -31,9 +33,24 @@ export default function Main() {
     navigate(`/productdetail/${product.product_id}`);
   };
 
+  const handleSearch = () => {
+    if (!searchInputValue.trim()) return;
+
+    fetch(`https://openmarket.weniv.co.kr/products/?search=${searchInputValue}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("검색 결과:", data.results);
+        setProducts(data.results);
+      })
+      .catch((error) => console.error("검색 요청 실패:", error));
+  };
+
   return (
     <>
-      <Header />
+      <Header
+        setSearchInputValue={setSearchInputValue}
+        handleSearch={() => handleSearch()}
+      />
       <main>
         <>
           <ImageSlider />
@@ -102,8 +119,14 @@ const ProductsContainerStyle = styled.ul`
     background-color: #ffffff;
     border: 1px solid #c4c4c4;
 
-    img:hover {
-      opacity: 0.6;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+
+      &:hover {
+        opacity: 0.6;
+      }
     }
   }
 

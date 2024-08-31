@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProductProvider } from "./context/ProductContext";
 import { CartProvider } from "./context/CartContext";
 import { OrderProvider } from "./context/OrderContext";
+import { SellerPovider } from "./context/SellerContext";
 
 function App() {
   return (
@@ -12,8 +13,10 @@ function App() {
       <ProductProvider>
         <CartProvider>
           <OrderProvider>
-            <GlobalStyles />
-            <Router />
+            <SellerPovider>
+              <GlobalStyles />
+              <Router />
+            </SellerPovider>
           </OrderProvider>
         </CartProvider>
       </ProductProvider>

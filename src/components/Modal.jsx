@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import styled from "styled-components";
 import deleteBtn from "../assets/images/icon-delete.svg";
@@ -16,6 +16,7 @@ export default function Modal({
   handleAllCheckBtnClick = () => {},
   handleQuantityControl,
 }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const { token, loginType } = useAuth();
 
@@ -24,6 +25,12 @@ export default function Modal({
       navigate("/login");
     } else if (token && loginType === "BUYER") {
       navigate("/shoppingcart");
+    } else if (
+      token &&
+      loginType === "SELLER" &&
+      location.pathname === "/sellercenter"
+    ) {
+      handleRightBtnClick();
     } else if (token && loginType === "SELLER") {
       localStorage.removeItem("token");
       navigate("/login");
