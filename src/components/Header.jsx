@@ -9,7 +9,10 @@ import iconShoppingCart2 from "../assets/images/icon-shopping-cart-2.svg";
 import iconUser from "../assets/images/icon-user.svg";
 import iconShoppingBag from "../assets/images/icon-shopping-bag.svg";
 
-export default function Header() {
+export default function Header({
+  setSearchInputValue,
+  handleSearch = () => {},
+}) {
   const { token, loginType } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,8 +72,9 @@ export default function Header() {
               id="input-search"
               type="text"
               placeholder="상품을 검색해보세요!"
+              onChange={(e) => setSearchInputValue(e.target.value)}
             />
-            <button className="btn-search">
+            <button className="btn-search" onClick={handleSearch}>
               <img src={iconSearch} alt="상품검색" />
             </button>
           </SearchContainerStyle>
