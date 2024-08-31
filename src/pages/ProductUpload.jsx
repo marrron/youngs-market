@@ -89,26 +89,30 @@ export default function ProductUpload() {
     if (isEditing) {
       putEditingProduct();
     } else {
-      const formData = {
-        product_name: productName,
-        image: imageFile,
-        price: parseInt(price.replace(/,/g, ""), 10),
-        shipping_method: shippingMethod,
-        shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
-        stock: parseInt(stock.replace(/,/g, ""), 10),
-        product_info: productInfo,
-      };
+      const formData = new FormData();
+
+      formData.append("product_name", productName);
+      formData.append("image", imageFile);
+      formData.append("price", parseInt(price.replace(/,/g, ""), 10));
+      formData.append("shipping_method", shippingMethod);
+      formData.append(
+        "shipping_fee",
+        parseInt(shippingFee.replace(/,/g, ""), 10)
+      );
+      formData.append("stock", parseInt(stock.replace(/,/g, ""), 10));
+      formData.append("product_info", productInfo);
 
       fetch("https://openmarket.weniv.co.kr/products/", {
         method: "POST",
         headers: {
           Authorization: `JWT ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: formData,
       })
         .then((response) => response.json())
         .then((data) => {
           console.log(data);
+          navigate("/sellercenter");
         })
         .catch((error) => console.error("Fetch Error:", error));
     }
