@@ -15,7 +15,7 @@ import NotFound from "../pages/NotFound";
 
 export default function Router() {
 	return (
-		<BrowserRouter>
+		<BrowserRouter basename={process.env.PUBLIC_URL}>
 			<ScrollToTop />
 			<Routes>
 				<Route path="/" element={<Main />} />
