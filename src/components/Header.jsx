@@ -32,6 +32,7 @@ export default function Header({
 		function logout() {
 			localStorage.removeItem("token");
 			localStorage.removeItem("username");
+			localStorage.removeItem("loginType");
 			window.location.href = "/";
 		}
 		setDropdownOpen(false);
