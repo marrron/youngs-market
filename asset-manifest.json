@@ -1,0 +1,41 @@
+{
+  "files": {
+    "main.js": "/youngs-market/static/js/main.5bfeade6.js",
+    "static/media/event-banner-3.svg": "/youngs-market/static/media/event-banner-3.881bc7ea38e8c58c272e77ac7cdb4b48.svg",
+    "static/media/event-banner-5.svg": "/youngs-market/static/media/event-banner-5.91a116cdf92a6b787818ad8908916aba.svg",
+    "static/media/event-banner-4.svg": "/youngs-market/static/media/event-banner-4.816ea46d99b6210f6a5c87f27c508f61.svg",
+    "static/media/event-banner-2.svg": "/youngs-market/static/media/event-banner-2.b55cb75ec7bacb76670831358a230cf0.svg",
+    "static/media/event-banner-1.svg": "/youngs-market/static/media/event-banner-1.92cb39aa801211c8dfaf10fc5649c4ee.svg",
+    "static/media/Logo-youngs.svg": "/youngs-market/static/media/Logo-youngs.c2a58770822305472359e65bff3513bf.svg",
+    "static/media/icon-soldout.svg": "/youngs-market/static/media/icon-soldout.faa1e2965d4bed41e3b3964a5fa05b0f.svg",
+    "static/media/notebook-shape.svg": "/youngs-market/static/media/notebook-shape.e6cec7a62b138745c93c9171c8fde694.svg",
+    "static/media/icon-404.svg": "/youngs-market/static/media/icon-404.8d1fbf70a48fe91a9cba5ac54b8f99dd.svg",
+    "static/media/icon-order.svg": "/youngs-market/static/media/icon-order.188c5f348ce0804ed439b44045f36172.svg",
+    "static/media/icon-insta.svg": "/youngs-market/static/media/icon-insta.6870daae55bc88d8d8e0c0a638de547e.svg",
+    "static/media/icon-shopping-cart-2.svg": "/youngs-market/static/media/icon-shopping-cart-2.9617d2ea6a25277fe93ce9b77133f3c3.svg",
+    "static/media/icon-shopping-cart.svg": "/youngs-market/static/media/icon-shopping-cart.92e22b07ca36da657560bd8a661efa40.svg",
+    "static/media/icon-yt.svg": "/youngs-market/static/media/icon-yt.ef6b69965613ce763ac5615b0376fb1f.svg",
+    "static/media/icon-img.svg": "/youngs-market/static/media/icon-img.9f9eacbc93c1dae3daae3daab929eb8c.svg",
+    "static/media/icon-shopping-bag.svg": "/youngs-market/static/media/icon-shopping-bag.2bb58ef8c9015832b9d8a6d1b4ef8f6b.svg",
+    "static/media/icon-user-2.svg": "/youngs-market/static/media/icon-user-2.1c039807af4d8296cdaacd14c68fd2d0.svg",
+    "static/media/icon-user.svg": "/youngs-market/static/media/icon-user.6a6cda2248d71a22643a66d26d6a2aeb.svg",
+    "static/media/icon-fb.svg": "/youngs-market/static/media/icon-fb.5daa6989afa4966cc9e11b26b795ff7f.svg",
+    "static/media/icon-search.svg": "/youngs-market/static/media/icon-search.d2e19a1d7cf1f0374de144b9d3a8b5a5.svg",
+    "index.html": "/youngs-market/index.html",
+    "static/media/icon-plus.svg": "/youngs-market/static/media/icon-plus.dfd0184a3c80a7f1ae468dca032116cf.svg",
+    "static/media/icon-delete.svg": "/youngs-market/static/media/icon-delete.09d6331c3f5fc047448a610d9c636974.svg",
+    "static/media/icon-check-fill-box.svg": "/youngs-market/static/media/icon-check-fill-box.b630af3274c2ff5188208b99c27be860.svg",
+    "static/media/icon-down-arrow.svg": "/youngs-market/static/media/icon-down-arrow.e6f45c3024f261416b24c2a90258b83f.svg",
+    "static/media/icon-up-arrow.svg": "/youngs-market/static/media/icon-up-arrow.d1804446a6f8754e8cba0dc8ad6b50a0.svg",
+    "static/media/icon-plus-line.svg": "/youngs-market/static/media/icon-plus-line.2232b4cb2bcd569098be8e9625237137.svg",
+    "static/media/icon-check-on.svg": "/youngs-market/static/media/icon-check-on.46abbb8c231f96db3621bfc52aae76a7.svg",
+    "static/media/icon-swiper-1.svg": "/youngs-market/static/media/icon-swiper-1.8056e6d7a27ba64bbda3ebac54bc124e.svg",
+    "static/media/icon-swiper-2.svg": "/youngs-market/static/media/icon-swiper-2.14dd33d69d52dc8c1924f3185b9e455b.svg",
+    "static/media/icon-check-box.svg": "/youngs-market/static/media/icon-check-box.9ecf6b15e441fe34f5a5820cea15ae2e.svg",
+    "static/media/icon-minus-line.svg": "/youngs-market/static/media/icon-minus-line.4bce5b91b8699cdcc559c843ce409408.svg",
+    "main.5bfeade6.js.map": "/youngs-market/static/js/main.5bfeade6.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.5bfeade6.js"
+  ]
+}
