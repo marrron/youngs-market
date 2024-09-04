@@ -6,7 +6,6 @@ import iconYt from "../assets/images/icon-yt.svg";
 
 export default function Footer() {
 	return (
-		// 아무거나
 		<FooterStyle>
 			<CorpAreaStyle>
 				<ul className="corp-links">
