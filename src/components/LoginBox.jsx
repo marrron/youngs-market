@@ -1,70 +1,73 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+import { FirebaseError } from "firebase/app";
 
 const LoginBox = () => {
+  const user = auth.currentUser;
   const { setToken, setLoginType } = useAuth(); // Context에서 setToken 가져오기
-  const [activeTab, setActiveTab] = useState(0);
-  const [username, setUsername] = useState("");
+  const [activeTab, setActiveTab] = useState("BUYER");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleTabClick = (index) => {
-    setActiveTab(index);
-    setLoginType(index === 0 ? "BUYER" : "SELLER");
-    setUsername("");
+  const handleTabClick = (type) => {
+    setActiveTab(type);
+    setEmail("");
     setPassword("");
     setErrorMessage("");
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault(); // 폼 제출 방지
+    setErrorMessage("");
 
-    const AuthData = {
-      username,
-      password,
-      login_type: activeTab === 0 ? "BUYER" : "SELLER",
-    };
+    if (email === "" || password === "") return;
 
-    axios
-      .post("https://openmarket.weniv.co.kr/accounts/login/", AuthData) // 로그인 API 호출
-      .then((response) => {
-        console.log("로그인 성공:", response.data); // 성공 시 응답 데이터 출력
-        localStorage.setItem("token", response.data.token);
-        setToken(response.data.token);
-        localStorage.setItem("username", username);
-        localStorage.setItem("loginType", activeTab === 0 ? "BUYER" : "SELLER");
-        navigate("/");
-      })
-      .catch((error) => {
-        if (error.response) {
-          setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
-        }
-      });
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/");
+      console.log(user.accessToken);
+      setToken(user.accessToken);
+      setLoginType(activeTab);
+    } catch (e) {
+      if (e instanceof FirebaseError) {
+        setErrorMessage(e.message);
+        console.log(e.code, e.message);
+      }
+    } finally {
+    }
   };
 
   return (
     <>
       <TabContainer>
-        <Tab active={activeTab === 0} onClick={() => handleTabClick(0)}>
+        <Tab
+          active={activeTab === "BUYER"}
+          onClick={() => handleTabClick("BUYER")}
+        >
           구매회원 로그인
         </Tab>
-        <Tab active={activeTab === 1} onClick={() => handleTabClick(1)}>
+        <Tab
+          active={activeTab === "SELLER"}
+          onClick={() => handleTabClick("SELLER")}
+        >
           판매회원 로그인
         </Tab>
       </TabContainer>
       <LoginContainer>
         <FormContainer>
-          {activeTab === 0 ? (
+          {activeTab === "BUYER" ? (
             <Form onSubmit={handleSubmit}>
               <Input
-                type="text"
-                placeholder="아이디"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="이메일"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <Input
@@ -82,10 +85,10 @@ const LoginBox = () => {
           ) : (
             <Form onSubmit={handleSubmit}>
               <Input
-                type="text"
-                placeholder="아이디"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="이메일"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <Input
