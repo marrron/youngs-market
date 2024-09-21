@@ -5,12 +5,24 @@ import styled from "styled-components";
 import iconImg from "../assets/images/icon-img.svg";
 import { useAuth } from "../context/AuthContext";
 import { useSeller } from "../context/SellerContext";
+import { auth, db, storage } from "../firebase";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 export default function ProductUpload() {
+  const user = auth.currentUser;
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const { token } = useAuth();
   const { editingProduct, isEditing } = useSeller();
+  const [file, setFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [productName, setProductName] = useState("");
@@ -20,23 +32,28 @@ export default function ProductUpload() {
   const [stock, setStock] = useState("");
   const [productInfo, setProductInfo] = useState("");
   const [editProduct, setEditProduct] = useState({
-    image: "",
-    product_name: "",
-    price: 0,
-    shipping_fee: 0,
-    stock: 0,
-    product_info: "",
+    image: editingProduct.image,
+    product_name: editingProduct.product_name,
+    price: editingProduct.price,
+    shipping_method: editingProduct.shipping_method,
+    shipping_fee: editingProduct.shipping_fee,
+    stock: editingProduct.stock,
+    product_info: editingProduct.product_info,
   });
 
-  // console.log(
-  //   imageFile,
-  //   productName,
-  //   price,
-  //   shippingMethod,
-  //   shippingFee,
-  //   stock,
-  //   productInfo
-  // );
+  console.log(editingProduct, isEditing, editProduct);
+
+  // console.log(user);
+
+  console.log(
+    imageFile,
+    productName,
+    price,
+    shippingMethod,
+    shippingFee,
+    stock,
+    productInfo
+  );
 
   // img업로드 버튼
   const handleImageUploadBtnClick = () => {
@@ -46,6 +63,7 @@ export default function ProductUpload() {
   // 이미지 화면 표시
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    setFile(file);
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
@@ -83,62 +101,99 @@ export default function ProductUpload() {
   };
 
   // 저장하기 버튼
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const sellerDocRef = doc(db, "sellers", user.uid);
+    const sellingProudctColRef = collection(sellerDocRef, "sellingProduct");
 
     if (isEditing) {
-      putEditingProduct();
-    } else {
-      const formData = new FormData();
+      // const imageRef = ref(
+      //   storage,
+      //   `sellers/${user.uid}/${editingProduct.product_id}`
+      // );
+      // const imageUrl = await getDownloadURL(imageRef);
+      // setFile(imageUrl);
 
-      formData.append("product_name", productName);
-      formData.append("image", imageFile);
-      formData.append("price", parseInt(price.replace(/,/g, ""), 10));
-      formData.append("shipping_method", shippingMethod);
-      formData.append(
-        "shipping_fee",
-        parseInt(shippingFee.replace(/,/g, ""), 10)
-      );
-      formData.append("stock", parseInt(stock.replace(/,/g, ""), 10));
-      formData.append("product_info", productInfo);
-
-      fetch("https://openmarket.weniv.co.kr/products/", {
-        method: "POST",
-        headers: {
-          Authorization: `JWT ${token}`,
-        },
-        body: formData,
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
-          navigate("/sellercenter");
-        })
-        .catch((error) => console.error("Fetch Error:", error));
-    }
-  };
-
-  // 상품디테일
-  const getSellingProduct = () => {
-    fetch(
-      `https://openmarket.weniv.co.kr/products/${editingProduct.product_id}`,
-      {
-        method: "GET",
+      try {
+        const productDocRef = doc(
+          db,
+          "sellers",
+          user.uid,
+          "sellingProduct",
+          editingProduct.product_id
+        );
+        // 상품 정보 업데이트
+        await updateDoc(productDocRef, {
+          product_name: productName,
+          price: parseInt(price.replace(/,/g, ""), 10),
+          shipping_method: shippingMethod,
+          shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+          stock: parseInt(stock.replace(/,/g, ""), 10),
+          product_info: productInfo,
+          updated_at: Date.now(),
+        });
+        if (file) {
+          const locationRef = ref(
+            storage,
+            `sellers/${user.uid}/${editingProduct.product_id}`
+          );
+          const result = await uploadBytes(locationRef, file);
+          const url = await getDownloadURL(result.ref);
+          await updateDoc(productDocRef, { image: url });
+        }
+        setFile(null);
+        navigate("/sellercenter");
+      } catch (e) {
+        console.error("Error updating product: ", e);
       }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setEditProduct(data);
-      })
-      .catch((error) => console.error("Fetch Error:", error));
-  };
+    } else {
+      if (
+        !file ||
+        productName === "" ||
+        price === "" ||
+        shippingMethod === "" ||
+        shippingFee === "" ||
+        stock === "" ||
+        productInfo === ""
+      )
+        return;
+      try {
+        const doc = await addDoc(sellingProudctColRef, {
+          product_name: productName,
+          price: parseInt(price.replace(/,/g, ""), 10),
+          shipping_method: shippingMethod,
+          shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+          stock: parseInt(stock.replace(/,/g, ""), 10),
+          product_info: productInfo,
+        });
 
-  useEffect(() => {
-    if (isEditing) {
-      getSellingProduct();
+        if (file) {
+          const locationRef = ref(storage, `sellers/${user.uid}/${doc.id}`);
+          const result = await uploadBytes(locationRef, file);
+          const url = await getDownloadURL(result.ref);
+          await updateDoc(doc, {
+            image: url,
+          });
+        }
+
+        await setDoc(
+          doc,
+          {
+            product_id: doc.id,
+            created_at: Date.now(),
+            seller: user.displayName,
+          },
+          { merge: true }
+        );
+
+        setFile(null);
+        navigate("/sellercenter");
+      } catch (e) {
+        console.log(e);
+      } finally {
+      }
     }
-  }, [isEditing]);
+  };
 
   useEffect(() => {
     if (editProduct && isEditing) {
@@ -155,37 +210,6 @@ export default function ProductUpload() {
       setImagePreview(editProduct.image || null);
     }
   }, [editProduct, isEditing]);
-
-  // 상품 수정
-  const putEditingProduct = () => {
-    const formData = {
-      product_name: productName,
-      price: parseInt(price.replace(/,/g, ""), 10),
-      shipping_method: shippingMethod,
-      shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
-      stock: parseInt(stock.replace(/,/g, ""), 10),
-      product_info: productInfo,
-    };
-
-    fetch(
-      `https://openmarket.weniv.co.kr/products/${editingProduct.product_id}/`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `JWT ${token}`,
-        },
-        body: JSON.stringify(formData),
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setEditProduct(data);
-        navigate("/sellercenter");
-      })
-      .catch((error) => console.error("Fetch Error:", error));
-  };
 
   return (
     <>
