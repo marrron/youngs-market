@@ -80,6 +80,10 @@ export default function SellerCenter() {
           editingProduct.product_id
         )
       );
+
+      // products 컬렉션에서 해당 product_id와 같은 document 삭제
+      await deleteDoc(doc(db, "products", editingProduct.product_id));
+
       if (editingProduct.image) {
         const photoRef = ref(
           storage,
@@ -87,6 +91,7 @@ export default function SellerCenter() {
         );
         await deleteObject(photoRef);
       }
+
       closeModal();
     } catch (e) {
       console.log(e);
