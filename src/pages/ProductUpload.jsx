@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import styled from "styled-components";
 import iconImg from "../assets/images/icon-img.svg";
-import { useAuth } from "../context/AuthContext";
 import { useSeller } from "../context/SellerContext";
 import { auth, db, storage } from "../firebase";
 import {
@@ -11,7 +10,6 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -30,6 +28,7 @@ export default function ProductUpload() {
   const [shippingMethod, setShippingMethod] = useState("");
   const [shippingFee, setShippingFee] = useState("");
   const [stock, setStock] = useState("");
+  const [storeName, setStoreName] = useState("");
   const [productInfo, setProductInfo] = useState("");
   const [editProduct, setEditProduct] = useState({
     image: editingProduct.image,
@@ -52,7 +51,8 @@ export default function ProductUpload() {
     shippingMethod,
     shippingFee,
     stock,
-    productInfo
+    productInfo,
+    storeName
   );
 
   // img업로드 버튼
@@ -105,93 +105,127 @@ export default function ProductUpload() {
     e.preventDefault();
     const sellerDocRef = doc(db, "sellers", user.uid);
     const sellingProudctColRef = collection(sellerDocRef, "sellingProduct");
+    const productsColRef = collection(db, "products");
 
-    if (isEditing) {
-      // const imageRef = ref(
-      //   storage,
-      //   `sellers/${user.uid}/${editingProduct.product_id}`
-      // );
-      // const imageUrl = await getDownloadURL(imageRef);
-      // setFile(imageUrl);
+    try {
+      const sellerDocSnap = await getDoc(sellerDocRef);
 
-      try {
-        const productDocRef = doc(
-          db,
-          "sellers",
-          user.uid,
-          "sellingProduct",
-          editingProduct.product_id
-        );
-        // 상품 정보 업데이트
-        await updateDoc(productDocRef, {
-          product_name: productName,
-          price: parseInt(price.replace(/,/g, ""), 10),
-          shipping_method: shippingMethod,
-          shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
-          stock: parseInt(stock.replace(/,/g, ""), 10),
-          product_info: productInfo,
-          updated_at: Date.now(),
-        });
-        if (file) {
-          const locationRef = ref(
-            storage,
-            `sellers/${user.uid}/${editingProduct.product_id}`
+      if (sellerDocSnap.exists()) {
+        const fetchedStoreName = sellerDocSnap.data().store_name;
+        setStoreName(fetchedStoreName);
+
+        // 비동기 호출 후 store_name이 설정된 후에 등록 로직 진행
+        if (isEditing) {
+          const productDocRef = doc(
+            db,
+            "sellers",
+            user.uid,
+            "sellingProduct",
+            editingProduct.product_id
           );
-          const result = await uploadBytes(locationRef, file);
-          const url = await getDownloadURL(result.ref);
-          await updateDoc(productDocRef, { image: url });
-        }
-        setFile(null);
-        navigate("/sellercenter");
-      } catch (e) {
-        console.error("Error updating product: ", e);
-      }
-    } else {
-      if (
-        !file ||
-        productName === "" ||
-        price === "" ||
-        shippingMethod === "" ||
-        shippingFee === "" ||
-        stock === "" ||
-        productInfo === ""
-      )
-        return;
-      try {
-        const doc = await addDoc(sellingProudctColRef, {
-          product_name: productName,
-          price: parseInt(price.replace(/,/g, ""), 10),
-          shipping_method: shippingMethod,
-          shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
-          stock: parseInt(stock.replace(/,/g, ""), 10),
-          product_info: productInfo,
-        });
 
-        if (file) {
-          const locationRef = ref(storage, `sellers/${user.uid}/${doc.id}`);
-          const result = await uploadBytes(locationRef, file);
-          const url = await getDownloadURL(result.ref);
-          await updateDoc(doc, {
-            image: url,
+          const productInProductsColRef = doc(
+            db,
+            "products",
+            editingProduct.product_id
+          );
+
+          // 상품 정보 업데이트
+          await updateDoc(productDocRef, {
+            product_name: productName,
+            price: parseInt(price.replace(/,/g, ""), 10),
+            shipping_method: shippingMethod,
+            shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+            stock: parseInt(stock.replace(/,/g, ""), 10),
+            product_info: productInfo,
+            updated_at: Date.now(),
           });
+
+          await updateDoc(productInProductsColRef, {
+            product_name: productName,
+            price: parseInt(price.replace(/,/g, ""), 10),
+            shipping_method: shippingMethod,
+            shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+            stock: parseInt(stock.replace(/,/g, ""), 10),
+            product_info: productInfo,
+            updated_at: Date.now(),
+          });
+
+          if (file) {
+            const locationRef = ref(
+              storage,
+              `sellers/${user.uid}/${editingProduct.product_id}`
+            );
+            const result = await uploadBytes(locationRef, file);
+            const url = await getDownloadURL(result.ref);
+            await updateDoc(productDocRef, { image: url });
+            await updateDoc(productInProductsColRef, { image: url });
+          }
+
+          setFile(null);
+          navigate("/sellercenter");
+        } else {
+          // 신규 상품 등록 로직
+          const newDocRef = await addDoc(sellingProudctColRef, {
+            product_name: productName,
+            price: parseInt(price.replace(/,/g, ""), 10),
+            shipping_method: shippingMethod,
+            shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+            stock: parseInt(stock.replace(/,/g, ""), 10),
+            product_info: productInfo,
+            store_name: fetchedStoreName, // fetch한 store_name 사용
+          });
+
+          const productRef = doc(productsColRef, newDocRef.id);
+          await setDoc(productRef, {
+            product_name: productName,
+            price: parseInt(price.replace(/,/g, ""), 10),
+            shipping_method: shippingMethod,
+            shipping_fee: parseInt(shippingFee.replace(/,/g, ""), 10),
+            stock: parseInt(stock.replace(/,/g, ""), 10),
+            product_info: productInfo,
+            seller_id: user.uid,
+            store_name: fetchedStoreName, // fetch한 store_name 사용
+          });
+
+          if (file) {
+            const locationRef = ref(
+              storage,
+              `sellers/${user.uid}/${newDocRef.id}`
+            );
+            const result = await uploadBytes(locationRef, file);
+            const url = await getDownloadURL(result.ref);
+
+            await updateDoc(newDocRef, { image: url });
+            await updateDoc(productRef, { image: url });
+          }
+
+          await setDoc(
+            newDocRef,
+            {
+              product_id: newDocRef.id,
+              created_at: Date.now(),
+              seller: user.displayName,
+            },
+            { merge: true }
+          );
+
+          await setDoc(
+            productRef,
+            {
+              product_id: newDocRef.id,
+              created_at: Date.now(),
+              seller: user.displayName,
+            },
+            { merge: true }
+          );
+
+          setFile(null);
+          navigate("/sellercenter");
         }
-
-        await setDoc(
-          doc,
-          {
-            product_id: doc.id,
-            created_at: Date.now(),
-            seller: user.displayName,
-          },
-          { merge: true }
-        );
-
-        setFile(null);
-        navigate("/sellercenter");
-      } catch (e) {
-        console.log(e);
-      } finally {
       }
+    } catch (e) {
+      console.log(e);
     }
   };
 
