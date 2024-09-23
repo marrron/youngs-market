@@ -18,7 +18,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const user = auth.currentUser;
   const { selectedProduct, setSelectedProduct } = useProduct();
-  const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
+  const { cartItemsIntersection } = useCartItems();
   const { token, loginType } = useAuth();
   const { setOrderkind } = useOrder();
   const [quantity, setQuantity] = useState(1);
@@ -30,11 +30,11 @@ export default function ProductDetail() {
 
   // 변수
   const cartStock = selectedProduct.stock;
-  const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
+  const cartQuantity = selectedProduct.quantity;
   const havingItem = inCartItem.some(
     (e) => e.product_id === selectedProduct.product_id
   );
-  console.log(selectedProduct.product_id, havingItem);
+  // console.log(selectedProduct.product_id, havingItem);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -53,7 +53,7 @@ export default function ProductDetail() {
 
   // 수량 증가 버튼
   const increaseQuantity = () => {
-    if (quantity < cartStock - cartQuantity) {
+    if (quantity < cartStock) {
       setQuantity((prevQuantity) => prevQuantity + 1);
     } else {
       setShowInstruction(true);
