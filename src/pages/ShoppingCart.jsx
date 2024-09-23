@@ -12,10 +12,13 @@ import { useCartItems } from "../context/CartContext";
 import { useOrder } from "../context/OrderContext";
 import Modal from "../components/Modal";
 import QuantityControl from "../components/QuantityControl";
+import { auth, db } from "../firebase";
+import { collection, doc, onSnapshot } from "firebase/firestore";
 
 export default function ShoppingCart() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
+  const user = auth.currentUser;
   const { token } = useAuth();
   const { products, selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
@@ -33,24 +36,48 @@ export default function ShoppingCart() {
     deleteCartItemId ? deleteCartItemId.quantity : 1
   );
 
-  // 장바구니 목록 GET
-  const getShoppingCartItems = () => {
-    fetch("https://openmarket.weniv.co.kr/cart/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setCartItems(data.results || []);
-      });
-  };
-
   useEffect(() => {
-    getShoppingCartItems();
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        // 로그인된 사용자가 있을 때 처리
+        console.log("User is logged in:", currentUser);
+      } else {
+        // 로그인된 사용자가 없을 때 처리
+        console.log("No user is logged in");
+      }
+    });
+
+    // 컴포넌트 언마운트 시 리스너 정리
+    return () => unsubscribe();
   }, []);
+
+  // 장바구니 가져오기
+  useEffect(() => {
+    let unsubscribe;
+
+    const getShoppingCartItems = async () => {
+      if (user) {
+        const buyerDocRef = doc(db, "buyers", user.uid);
+        const shoppingCartDocRef = collection(buyerDocRef, "incart");
+
+        unsubscribe = onSnapshot(shoppingCartDocRef, (snapshot) => {
+          const cartItems = snapshot.docs.map((doc) => ({
+            ...doc.data(),
+          }));
+          setCartItems(cartItems); // 장바구니 아이템 업데이트
+        });
+      }
+    };
+
+    getShoppingCartItems();
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [user]);
 
   console.log(
     "products",
@@ -159,29 +186,7 @@ export default function ShoppingCart() {
   }, [cartItemsIntersection, selectedProduct]);
 
   // 장바구니 개별 삭제하기
-  const individualDeleteCartItems = (cartItemId) => {
-    fetch(`https://openmarket.weniv.co.kr/cart/${cartItemId}/`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then((data) => {
-        console.log("Deleted from cart", data);
-        getShoppingCartItems();
-        setSelectedCartItemIds([]);
-        closeModal();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
+  const individualDeleteCartItems = (cartItemId) => {};
 
   // 장바구니 선택 삭제하기
   const deleteSelectedCartItems = () => {
@@ -191,66 +196,10 @@ export default function ShoppingCart() {
   };
 
   // 장바구니 전체 선택 후 삭제하기
-  const allCartItemsDelete = () => {
-    fetch("https://openmarket.weniv.co.kr/cart/", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then((data) => {
-        console.log("Deleted from cart", data);
-        getShoppingCartItems();
-        setSelectedCartItemIds([]);
-        closeModal();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
+  const allCartItemsDelete = () => {};
 
   // 수량 수정
-  const itemQuantityControl = () => {
-    fetch(
-      `https://openmarket.weniv.co.kr/cart/${deleteCartItemId.cart_item_id}/`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `JWT ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          product_id: deleteCartItemId.product_id,
-          quantity: quantity,
-          is_active: deleteCartItemId.is_active,
-        }),
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then((data) => {
-        console.log("itemQuantityControl:", data);
-        closeModal();
-        getShoppingCartItems();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-    console.log(
-      deleteCartItemId.product_id,
-      quantity,
-      deleteCartItemId.is_active
-    );
-  };
+  const itemQuantityControl = () => {};
 
   return (
     <>
