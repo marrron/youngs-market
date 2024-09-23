@@ -22,7 +22,6 @@ export default function Main() {
       productsRef,
       (snapshot) => {
         const productsList = snapshot.docs.map((doc) => ({
-          id: doc.id, // 문서 ID를 포함
           ...doc.data(),
         }));
         console.log(productsList);
