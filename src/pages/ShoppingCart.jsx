@@ -13,12 +13,13 @@ import { useOrder } from "../context/OrderContext";
 import Modal from "../components/Modal";
 import QuantityControl from "../components/QuantityControl";
 import { auth, db } from "../firebase";
-import { collection, doc, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function ShoppingCart() {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState([]);
   const user = auth.currentUser;
+  const [cartItems, setCartItems] = useState([]);
   const { token } = useAuth();
   const { products, selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection, setCartItemsIntersection } = useCartItems();
@@ -37,27 +38,11 @@ export default function ShoppingCart() {
   );
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      if (currentUser) {
-        // 로그인된 사용자가 있을 때 처리
-        console.log("User is logged in:", currentUser);
-      } else {
-        // 로그인된 사용자가 없을 때 처리
-        console.log("No user is logged in");
-      }
-    });
-
-    // 컴포넌트 언마운트 시 리스너 정리
-    return () => unsubscribe();
-  }, []);
-
-  // 장바구니 가져오기
-  useEffect(() => {
     let unsubscribe;
 
-    const getShoppingCartItems = async () => {
-      if (user) {
-        const buyerDocRef = doc(db, "buyers", user.uid);
+    const getShoppingCartItems = async (currentUser) => {
+      if (currentUser) {
+        const buyerDocRef = doc(db, "buyers", currentUser.uid);
         const shoppingCartDocRef = collection(buyerDocRef, "incart");
 
         unsubscribe = onSnapshot(shoppingCartDocRef, (snapshot) => {
@@ -69,15 +54,22 @@ export default function ShoppingCart() {
       }
     };
 
-    getShoppingCartItems();
+    const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        getShoppingCartItems(currentUser);
+      }
+    });
 
     // 컴포넌트 언마운트 시 구독 해제
     return () => {
       if (unsubscribe) {
         unsubscribe();
       }
+      if (authUnsubscribe) {
+        authUnsubscribe();
+      }
     };
-  }, [user]);
+  }, []);
 
   console.log(
     "products",
@@ -85,7 +77,11 @@ export default function ShoppingCart() {
     "cartItems",
     cartItems,
     "cartItemsIntersection",
-    cartItemsIntersection
+    cartItemsIntersection,
+    "deleteCartItemId",
+    deleteCartItemId,
+    "quantity",
+    quantity
   );
 
   // 장바구니 목록 display
@@ -102,8 +98,7 @@ export default function ShoppingCart() {
           return {
             ...product,
             quantity: cartItem ? cartItem.quantity : 1,
-            cart_item_id: cartItem ? cartItem.cart_item_id : "",
-            is_active: cartItem ? cartItem.is_active : false,
+            cart_item_id: cartItem ? cartItem.id : "",
           };
         });
       setCartItemsIntersection(intersection);
@@ -145,7 +140,7 @@ export default function ShoppingCart() {
       setSelectedCartItemIds([]);
     } else {
       setSelectedCartItemIds(
-        cartItemsIntersection.map((item) => item.cart_item_id)
+        cartItemsIntersection.map((item) => item.product_id)
       );
     }
   };
@@ -174,7 +169,7 @@ export default function ShoppingCart() {
     setSelectedCartItemIds([]);
   };
 
-  console.log(selectedCartItemIds, leftBtnText, rightBtnText);
+  // console.log(selectedCartItemIds, leftBtnText, rightBtnText);
 
   useEffect(() => {
     console.log("Products:", products);
@@ -199,7 +194,29 @@ export default function ShoppingCart() {
   const allCartItemsDelete = () => {};
 
   // 수량 수정
-  const itemQuantityControl = () => {};
+  const itemQuantityControl = async () => {
+    try {
+      // buyers - user.uid - incart - 해당 doc.id를 가진 상품 quantity 업데이트
+      console.log(
+        "수정확인",
+        deleteCartItemId.cart_item_id,
+        deleteCartItemId.quantity
+      );
+      const inCartDocRef = doc(
+        db,
+        "buyers",
+        user.uid,
+        "incart",
+        deleteCartItemId.cart_item_id
+      );
+      await updateDoc(inCartDocRef, {
+        quantity: quantity,
+      });
+      closeModal();
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <>
@@ -245,19 +262,17 @@ export default function ShoppingCart() {
           <>
             <ShoppingCartStyle>
               {cartItemsIntersection.map((item) => {
-                const id = `cart-item-check-${item.cart_item_id}`;
+                const id = `cart-item-check-${item.product_id}`;
                 return (
                   <CartItemStyle key={item.product_id}>
                     <div>
                       <input
                         type="checkbox"
                         id={id}
-                        name={item.cart_item_id}
-                        checked={selectedCartItemIds.includes(
-                          item.cart_item_id
-                        )}
+                        name={item.product_id}
+                        checked={selectedCartItemIds.includes(item.product_id)}
                         onChange={() => {
-                          handleSelect(item.cart_item_id);
+                          handleSelect(item.product_id);
                         }}
                       />
                       <label htmlFor={id}></label>
@@ -274,7 +289,7 @@ export default function ShoppingCart() {
                       <p>{item.store_name}</p>
                       <p>{item.product_name}</p>
                       <strong>{formatPrice(item.price)}원</strong>
-                      <p>{item.shipping_fee.toLocaleString()}원</p>
+                      <p>{item.shipping_method}</p>
                     </div>
                     <div
                       onClick={() => {
@@ -319,7 +334,7 @@ export default function ShoppingCart() {
                     <DeleteBtnStyle
                       onClick={() =>
                         openModal(
-                          item.cart_item_id,
+                          item.product_id,
                           "취소",
                           "삭제",
                           "선택하신 상품을 삭제하시겠습니까?"
