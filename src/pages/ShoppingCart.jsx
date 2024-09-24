@@ -144,7 +144,7 @@ export default function ShoppingCart() {
       setSelectedCartItemIds([]);
     } else {
       setSelectedCartItemIds(
-        cartItemsIntersection.map((item) => item.product_id)
+        cartItemsIntersection.map((item) => item.cart_item_id)
       );
     }
   };
@@ -188,7 +188,6 @@ export default function ShoppingCart() {
   const individualDeleteCartItems = async (cartItemId) => {
     try {
       await deleteDoc(doc(db, "buyers", user.uid, "incart", cartItemId));
-      console.log("x버튼 삭제임", cartItemId);
       closeModal();
     } catch (e) {
       console.log(e);
@@ -203,17 +202,22 @@ export default function ShoppingCart() {
   };
 
   // 장바구니 전체 선택 후 삭제하기
-  const allCartItemsDelete = () => {};
+  const allCartItemsDelete = () => {
+    selectedCartItemIds.forEach(async (el, index) => {
+      try {
+        console.log("전체삭제할게융", el);
+        await deleteDoc(doc(db, "buyers", user.uid, "incart", el));
+        closeModal();
+      } catch (e) {
+        console.log(e);
+      }
+    });
+  };
 
   // 수량 수정
   const itemQuantityControl = async () => {
     try {
       // buyers - user.uid - incart - 해당 doc.id를 가진 상품 quantity 업데이트
-      // console.log(
-      //   "수정확인",
-      //   deleteCartItemId.cart_item_id,
-      //   deleteCartItemId.quantity
-      // );
       const inCartDocRef = doc(
         db,
         "buyers",
@@ -274,17 +278,19 @@ export default function ShoppingCart() {
           <>
             <ShoppingCartStyle>
               {cartItemsIntersection.map((item) => {
-                const id = `cart-item-check-${item.product_id}`;
+                const id = `cart-item-check-${item.cart_item_id}`;
                 return (
-                  <CartItemStyle key={item.product_id}>
+                  <CartItemStyle key={item.cart_item_id}>
                     <div>
                       <input
                         type="checkbox"
                         id={id}
-                        name={item.product_id}
-                        checked={selectedCartItemIds.includes(item.product_id)}
+                        name={item.cart_item_id}
+                        checked={selectedCartItemIds.includes(
+                          item.cart_item_id
+                        )}
                         onChange={() => {
-                          handleSelect(item.product_id);
+                          handleSelect(item.cart_item_id);
                         }}
                       />
                       <label htmlFor={id}></label>
