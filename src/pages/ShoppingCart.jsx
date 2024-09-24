@@ -12,9 +12,19 @@ import { useCartItems } from "../context/CartContext";
 import { useOrder } from "../context/OrderContext";
 import Modal from "../components/Modal";
 import QuantityControl from "../components/QuantityControl";
+import { auth, db } from "../firebase";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function ShoppingCart() {
   const navigate = useNavigate();
+  const user = auth.currentUser;
   const [cartItems, setCartItems] = useState([]);
   const { token } = useAuth();
   const { products, selectedProduct, setSelectedProduct } = useProduct();
@@ -33,23 +43,38 @@ export default function ShoppingCart() {
     deleteCartItemId ? deleteCartItemId.quantity : 1
   );
 
-  // 장바구니 목록 GET
-  const getShoppingCartItems = () => {
-    fetch("https://openmarket.weniv.co.kr/cart/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setCartItems(data.results || []);
-      });
-  };
-
   useEffect(() => {
-    getShoppingCartItems();
+    let unsubscribe;
+
+    const getShoppingCartItems = async (currentUser) => {
+      if (currentUser) {
+        const buyerDocRef = doc(db, "buyers", currentUser.uid);
+        const shoppingCartDocRef = collection(buyerDocRef, "incart");
+
+        unsubscribe = onSnapshot(shoppingCartDocRef, (snapshot) => {
+          const cartItems = snapshot.docs.map((doc) => ({
+            ...doc.data(),
+          }));
+          setCartItems(cartItems); // 장바구니 아이템 업데이트
+        });
+      }
+    };
+
+    const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        getShoppingCartItems(currentUser);
+      }
+    });
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      if (authUnsubscribe) {
+        authUnsubscribe();
+      }
+    };
   }, []);
 
   console.log(
@@ -58,7 +83,9 @@ export default function ShoppingCart() {
     "cartItems",
     cartItems,
     "cartItemsIntersection",
-    cartItemsIntersection
+    cartItemsIntersection,
+    "deleteCartItemId",
+    deleteCartItemId
   );
 
   // 장바구니 목록 display
@@ -75,8 +102,7 @@ export default function ShoppingCart() {
           return {
             ...product,
             quantity: cartItem ? cartItem.quantity : 1,
-            cart_item_id: cartItem ? cartItem.cart_item_id : "",
-            is_active: cartItem ? cartItem.is_active : false,
+            cart_item_id: cartItem ? cartItem.id : "",
           };
         });
       setCartItemsIntersection(intersection);
@@ -147,7 +173,7 @@ export default function ShoppingCart() {
     setSelectedCartItemIds([]);
   };
 
-  console.log(selectedCartItemIds, leftBtnText, rightBtnText);
+  // console.log(selectedCartItemIds, leftBtnText, rightBtnText);
 
   useEffect(() => {
     console.log("Products:", products);
@@ -159,28 +185,13 @@ export default function ShoppingCart() {
   }, [cartItemsIntersection, selectedProduct]);
 
   // 장바구니 개별 삭제하기
-  const individualDeleteCartItems = (cartItemId) => {
-    fetch(`https://openmarket.weniv.co.kr/cart/${cartItemId}/`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then((data) => {
-        console.log("Deleted from cart", data);
-        getShoppingCartItems();
-        setSelectedCartItemIds([]);
-        closeModal();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+  const individualDeleteCartItems = async (cartItemId) => {
+    try {
+      await deleteDoc(doc(db, "buyers", user.uid, "incart", cartItemId));
+      closeModal();
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   // 장바구니 선택 삭제하기
@@ -192,64 +203,35 @@ export default function ShoppingCart() {
 
   // 장바구니 전체 선택 후 삭제하기
   const allCartItemsDelete = () => {
-    fetch("https://openmarket.weniv.co.kr/cart/", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then((data) => {
-        console.log("Deleted from cart", data);
-        getShoppingCartItems();
-        setSelectedCartItemIds([]);
+    selectedCartItemIds.forEach(async (el, index) => {
+      try {
+        console.log("전체삭제할게융", el);
+        await deleteDoc(doc(db, "buyers", user.uid, "incart", el));
         closeModal();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+      } catch (e) {
+        console.log(e);
+      }
+    });
   };
 
   // 수량 수정
-  const itemQuantityControl = () => {
-    fetch(
-      `https://openmarket.weniv.co.kr/cart/${deleteCartItemId.cart_item_id}/`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `JWT ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          product_id: deleteCartItemId.product_id,
-          quantity: quantity,
-          is_active: deleteCartItemId.is_active,
-        }),
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then((data) => {
-        console.log("itemQuantityControl:", data);
-        closeModal();
-        getShoppingCartItems();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+  const itemQuantityControl = async () => {
+    try {
+      // buyers - user.uid - incart - 해당 doc.id를 가진 상품 quantity 업데이트
+      const inCartDocRef = doc(
+        db,
+        "buyers",
+        user.uid,
+        "incart",
+        deleteCartItemId.cart_item_id
+      );
+      await updateDoc(inCartDocRef, {
+        quantity: quantity,
       });
-    console.log(
-      deleteCartItemId.product_id,
-      quantity,
-      deleteCartItemId.is_active
-    );
+      closeModal();
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
@@ -298,7 +280,7 @@ export default function ShoppingCart() {
               {cartItemsIntersection.map((item) => {
                 const id = `cart-item-check-${item.cart_item_id}`;
                 return (
-                  <CartItemStyle key={item.product_id}>
+                  <CartItemStyle key={item.cart_item_id}>
                     <div>
                       <input
                         type="checkbox"
@@ -325,7 +307,7 @@ export default function ShoppingCart() {
                       <p>{item.store_name}</p>
                       <p>{item.product_name}</p>
                       <strong>{formatPrice(item.price)}원</strong>
-                      <p>{item.shipping_fee.toLocaleString()}원</p>
+                      <p>{item.shipping_method}</p>
                     </div>
                     <div
                       onClick={() => {

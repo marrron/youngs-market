@@ -6,6 +6,8 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import iconSoldout from "../assets/images/icon-soldout.svg";
 import ImageSlider from "../components/ImageSlider";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Main() {
   const navigate = useNavigate();
@@ -15,17 +17,27 @@ export default function Main() {
 
   // 상품 전체 불러오기
   const getProducts = () => {
-    fetch("https://openmarket.weniv.co.kr/products/")
-      .then((response) => response.json())
-      .then((data) => {
-        setProducts(data.results);
-        console.log(data.results);
-      })
-      .catch((error) => console.error("Error fetching products:", error));
+    const productsRef = collection(db, "products");
+    const unsubscribe = onSnapshot(
+      productsRef,
+      (snapshot) => {
+        const productsList = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+        }));
+        console.log(productsList);
+        setProducts(productsList);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+
+    return unsubscribe; // 언구독 함수 반환
   };
 
   useEffect(() => {
-    getProducts();
+    const unsubscribe = getProducts();
+    return () => unsubscribe(); // 컴포넌트 언마운트 시 언구독
   }, []);
 
   const handleProductClick = (product) => {
@@ -33,17 +45,7 @@ export default function Main() {
     navigate(`/productdetail/${product.product_id}`);
   };
 
-  const handleSearch = () => {
-    if (!searchInputValue.trim()) return;
-
-    fetch(`https://openmarket.weniv.co.kr/products/?search=${searchInputValue}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("검색 결과:", data.results);
-        setProducts(data.results);
-      })
-      .catch((error) => console.error("검색 요청 실패:", error));
-  };
+  const handleSearch = () => {};
 
   return (
     <>

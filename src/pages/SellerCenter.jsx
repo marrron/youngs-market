@@ -4,18 +4,29 @@ import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import styled from "styled-components";
 import iconPlus from "../assets/images/icon-plus.svg";
-import { useAuth } from "../context/AuthContext";
 import { useSeller } from "../context/SellerContext";
 import Modal from "../components/Modal";
+import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
+import { auth, db, storage } from "../firebase";
+import { deleteObject, ref } from "firebase/storage";
 
 export default function SellerCenter() {
   const navigate = useNavigate();
-  const { token } = useAuth();
   const { editingProduct, setEditingProduct, setIsEditing } = useSeller();
   const [products, setProducts] = useState([]);
   const [activeNavItem, setActiveNavItem] = useState("판매중인 상품");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTxt, setModalTxt] = useState("");
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // 사용자 인증 상태 구독
+    const unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
 
   // navbar
   const handleNavItemClick = (item) => {
@@ -23,49 +34,69 @@ export default function SellerCenter() {
   };
 
   // 판매상품 목록 GET
-  const getProducts = () => {
-    fetch("https://openmarket.weniv.co.kr/seller/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data.results);
-        setProducts(data.results);
-      })
-      .catch((error) => console.error("Error fetching products:", error));
-  };
-
   useEffect(() => {
-    getProducts();
-  }, []);
+    let unsubscribe = null;
+
+    const fetchProducts = () => {
+      if (user) {
+        const sellerDocRef = doc(db, "sellers", user.uid);
+        const sellingProductColRef = collection(sellerDocRef, "sellingProduct");
+
+        // sellingProduct 컬렉션의 변경사항을 실시간으로 가져오기
+        unsubscribe = onSnapshot(
+          sellingProductColRef,
+          (querySnapshot) => {
+            const productList = querySnapshot.docs.map((doc) => ({
+              ...doc.data(),
+            }));
+
+            setProducts(productList);
+          },
+          (error) => {
+            console.error("Error fetching products: ", error);
+          }
+        );
+      }
+    };
+
+    fetchProducts();
+
+    // 컴포넌트 언마운트 시 리스너 해제
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [user]);
 
   // 삭제하기
-  const handleDeleteBtnClick = () => {
-    console.log(editingProduct);
-    fetch(
-      `https://openmarket.weniv.co.kr/products/${editingProduct.product_id}/`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${token}`,
-        },
+  const handleDeleteBtnClick = async () => {
+    try {
+      console.log(editingProduct);
+      await deleteDoc(
+        doc(
+          db,
+          "sellers",
+          user.uid,
+          "sellingProduct",
+          editingProduct.product_id
+        )
+      );
+
+      // products 컬렉션에서 해당 product_id와 같은 document 삭제
+      await deleteDoc(doc(db, "products", editingProduct.product_id));
+
+      if (editingProduct.image) {
+        const photoRef = ref(
+          storage,
+          `sellers/${user.uid}/${editingProduct.product_id}`
+        );
+        await deleteObject(photoRef);
       }
-    )
-      .then((response) => {
-        if (response.ok) {
-          console.log("Product deleted successfully");
-          closeModal();
-          getProducts();
-        } else {
-          console.error("Failed to delete the product");
-        }
-      })
-      .catch((error) => console.error("Error fetching products:", error));
+
+      closeModal();
+    } catch (e) {
+      console.log(e);
+    } finally {
+    }
   };
 
   const openModal = (modalTxt) => {

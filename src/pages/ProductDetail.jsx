@@ -11,9 +11,18 @@ import Footer from "../components/Footer";
 import Modal from "../components/Modal";
 import Instruction from "../components/Instruction";
 import { useOrder } from "../context/OrderContext";
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  setDoc,
+} from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 export default function ProductDetail() {
   const navigate = useNavigate();
+  const user = auth.currentUser;
   const { selectedProduct, setSelectedProduct } = useProduct();
   const { cartItemsIntersection } = useCartItems();
   const { token, loginType } = useAuth();
@@ -27,12 +36,30 @@ export default function ProductDetail() {
 
   // 변수
   const cartStock = selectedProduct.stock;
-  const cartQuantity = inCartItem.length > 0 ? inCartItem[0].quantity : 0;
-  console.log(selectedProduct);
+  const cartQuantity = selectedProduct.quantity;
+  const havingItem = inCartItem.some(
+    (e) => e.product_id === selectedProduct.product_id
+  );
+  // console.log(selectedProduct.product_id, havingItem);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        // 로그인된 사용자가 있을 때 처리
+        console.log("User is logged in:", currentUser);
+      } else {
+        // 로그인된 사용자가 없을 때 처리
+        console.log("No user is logged in");
+      }
+    });
+
+    // 컴포넌트 언마운트 시 리스너 정리
+    return () => unsubscribe();
+  }, []);
 
   // 수량 증가 버튼
   const increaseQuantity = () => {
-    if (quantity < cartStock - cartQuantity) {
+    if (quantity < cartStock) {
       setQuantity((prevQuantity) => prevQuantity + 1);
     } else {
       setShowInstruction(true);
@@ -70,21 +97,21 @@ export default function ProductDetail() {
 
   // 장바구니 버튼 클릭
   const handleShoppingCartBtnClick = () => {
-    console.log(
-      "cartStock",
-      cartStock,
-      "cartQuantity",
-      cartQuantity,
-      "quantity",
-      quantity,
-      "inCartItem",
-      inCartItem,
-      "cartItemsIntersection",
-      cartItemsIntersection
-    );
+    // console.log(
+    //   "cartStock",
+    //   cartStock,
+    //   "cartQuantity",
+    //   cartQuantity,
+    //   "quantity",
+    //   quantity,
+    //   "inCartItem",
+    //   inCartItem,
+    //   "cartItemsIntersection",
+    //   cartItemsIntersection
+    // );
 
     if (token && loginType === "BUYER") {
-      if (cartQuantity === 0) {
+      if (!havingItem) {
         setModalTxt(
           <>
             장바구니에 상품을 담았습니다.
@@ -94,7 +121,7 @@ export default function ProductDetail() {
         );
         openModal();
         putInShoppingCart();
-      } else if (cartQuantity > 0) {
+      } else if (havingItem) {
         setModalTxt(
           <>
             이미 장바구니에 있는 상품입니다.
@@ -103,7 +130,6 @@ export default function ProductDetail() {
           </>
         );
         openModal();
-        putInShoppingCart();
       }
     } else if (!token && loginType === "BUYER") {
       openModal();
@@ -126,44 +152,74 @@ export default function ProductDetail() {
     }
   };
 
+  // 장바구니 가져오기
+  useEffect(() => {
+    let unsubscribe;
+
+    const fetchData = async () => {
+      if (user) {
+        const buyerDocRef = doc(db, "buyers", user.uid);
+        const shoppingCartDocRef = collection(buyerDocRef, "incart");
+
+        unsubscribe = onSnapshot(shoppingCartDocRef, (snapshot) => {
+          const cartItems = snapshot.docs.map((doc) => ({
+            ...doc.data(),
+          }));
+          setInCartItem(cartItems); // 장바구니 아이템 업데이트
+        });
+      }
+    };
+
+    fetchData();
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [user]);
+
   // 장바구니에 넣기
-  const putInShoppingCart = () => {
-    fetch("https://openmarket.weniv.co.kr/cart/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-      body: JSON.stringify({
+  const putInShoppingCart = async () => {
+    const buyerDocRef = doc(db, "buyers", user.uid);
+    const shoppingCartDocRef = collection(buyerDocRef, "incart");
+
+    try {
+      const newDocRef = await addDoc(shoppingCartDocRef, {
+        store_name: selectedProduct.store_name,
+        product_name: selectedProduct.product_name,
+        price: selectedProduct.price,
+        shipping_method: selectedProduct.shipping_method,
+        shipping_fee: selectedProduct.shipping_fee,
+        quantity: selectedProduct.quantity,
+        stock: selectedProduct.stock,
         product_id: selectedProduct.product_id,
-        quantity: quantity,
-        check: false,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("shoppingCart", data);
-        setInCartItem([data]);
-      })
-      .catch((error) => {
-        console.error("Error fetching products:", error);
-        setModalTxt(
-          <>
-            재고 수량이 부족하여 <br />
-            장바구니에 담을 수 없습니다. <br />
-            장바구니로 이동하시겠습니까?
-          </>
-        );
-        openModal();
+        image: selectedProduct.image,
       });
+
+      await setDoc(
+        newDocRef,
+        {
+          id: newDocRef.id,
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.log(e);
+    }
+
+    // setModalTxt(
+    //   <>
+    //     재고 수량이 부족하여 <br />
+    //     장바구니에 담을 수 없습니다. <br />
+    //     장바구니로 이동하시겠습니까?
+    //   </>
+    // );
+    // openModal();
   };
 
-  console.log(inCartItem);
+  console.log("inCartItem", inCartItem);
 
   useEffect(() => {
     const filteredCartItem = cartItemsIntersection.filter(

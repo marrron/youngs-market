@@ -11,22 +11,17 @@ export default function QuantityControl({
   const [quantity, setQuantity] = useState(initialQuantity || 1);
 
   const handleIncrease = () => {
-    setQuantity((prevQuantity) => {
-      if (item && item.stock > quantity) {
-        const newQuantity = prevQuantity + 1;
-        if (onQuantityChange) onQuantityChange(newQuantity);
-        return newQuantity;
-      }
-      return prevQuantity;
-    });
+    if (quantity < item.stock) {
+      const newQuantity = quantity + 1;
+      setQuantity(newQuantity);
+      onQuantityChange(newQuantity);
+    }
   };
 
   const handleDecrease = () => {
-    setQuantity((prevQuantity) => {
-      const newQuantity = Math.max(prevQuantity - 1, 1);
-      if (onQuantityChange) onQuantityChange(newQuantity);
-      return newQuantity;
-    });
+    const newQuantity = Math.max(1, quantity - 1);
+    setQuantity(newQuantity);
+    onQuantityChange(newQuantity);
   };
 
   return (
