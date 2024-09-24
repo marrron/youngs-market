@@ -2,16 +2,24 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Header from "../components/Header";
 import UserImg from "../assets/images/icon-user-2.svg";
+import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function MyPage() {
 	const [username, setUsername] = useState("");
 
 	useEffect(() => {
-		const storedUsername = localStorage.getItem("username");
-		if (storedUsername) {
-			setUsername(storedUsername);
-		}
+		const unsubscribe = onAuthStateChanged(auth, (user) => {
+			if (user) {
+				setUsername(user.displayName || "이름이 설정되지 않았습니다.");
+			} else {
+				setUsername("");
+			}
+		});
+
+		return () => unsubscribe();
 	}, []);
+
 	return (
 		<>
 			<Header></Header>
