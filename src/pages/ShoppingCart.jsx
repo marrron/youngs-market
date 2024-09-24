@@ -13,7 +13,13 @@ import { useOrder } from "../context/OrderContext";
 import Modal from "../components/Modal";
 import QuantityControl from "../components/QuantityControl";
 import { auth, db } from "../firebase";
-import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
 export default function ShoppingCart() {
@@ -79,9 +85,7 @@ export default function ShoppingCart() {
     "cartItemsIntersection",
     cartItemsIntersection,
     "deleteCartItemId",
-    deleteCartItemId,
-    "quantity",
-    quantity
+    deleteCartItemId
   );
 
   // 장바구니 목록 display
@@ -181,7 +185,15 @@ export default function ShoppingCart() {
   }, [cartItemsIntersection, selectedProduct]);
 
   // 장바구니 개별 삭제하기
-  const individualDeleteCartItems = (cartItemId) => {};
+  const individualDeleteCartItems = async (cartItemId) => {
+    try {
+      await deleteDoc(doc(db, "buyers", user.uid, "incart", cartItemId));
+      console.log("x버튼 삭제임", cartItemId);
+      closeModal();
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   // 장바구니 선택 삭제하기
   const deleteSelectedCartItems = () => {
@@ -197,11 +209,11 @@ export default function ShoppingCart() {
   const itemQuantityControl = async () => {
     try {
       // buyers - user.uid - incart - 해당 doc.id를 가진 상품 quantity 업데이트
-      console.log(
-        "수정확인",
-        deleteCartItemId.cart_item_id,
-        deleteCartItemId.quantity
-      );
+      // console.log(
+      //   "수정확인",
+      //   deleteCartItemId.cart_item_id,
+      //   deleteCartItemId.quantity
+      // );
       const inCartDocRef = doc(
         db,
         "buyers",
@@ -334,7 +346,7 @@ export default function ShoppingCart() {
                     <DeleteBtnStyle
                       onClick={() =>
                         openModal(
-                          item.product_id,
+                          item.cart_item_id,
                           "취소",
                           "삭제",
                           "선택하신 상품을 삭제하시겠습니까?"
