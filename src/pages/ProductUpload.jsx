@@ -30,7 +30,7 @@ export default function ProductUpload() {
   const [stock, setStock] = useState("");
   const [storeName, setStoreName] = useState("");
   const [productInfo, setProductInfo] = useState("");
-  const [editProduct, setEditProduct] = useState({
+  const [editProduct] = useState({
     image: editingProduct.image,
     product_name: editingProduct.product_name,
     price: editingProduct.price,
