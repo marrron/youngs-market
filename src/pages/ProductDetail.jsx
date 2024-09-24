@@ -11,7 +11,13 @@ import Footer from "../components/Footer";
 import Modal from "../components/Modal";
 import Instruction from "../components/Instruction";
 import { useOrder } from "../context/OrderContext";
-import { addDoc, collection, doc, onSnapshot } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  setDoc,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 export default function ProductDetail() {
@@ -191,6 +197,14 @@ export default function ProductDetail() {
         product_id: selectedProduct.product_id,
         image: selectedProduct.image,
       });
+
+      await setDoc(
+        newDocRef,
+        {
+          id: newDocRef.id,
+        },
+        { merge: true }
+      );
     } catch (e) {
       console.log(e);
     }
