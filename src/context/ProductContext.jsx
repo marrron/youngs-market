@@ -5,7 +5,7 @@ const ProductContext = createContext();
 export const ProductProvider = ({ children }) => {
   const [selectedProduct, setSelectedProduct] = useState(() => {
     const savedProduct = localStorage.getItem("selectedProduct");
-    return savedProduct ? JSON.parse(savedProduct) : null;
+    return savedProduct ? JSON.parse(savedProduct) : [];
   });
 
   const [products, setProducts] = useState(() => {
@@ -14,19 +14,11 @@ export const ProductProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    if (selectedProduct) {
-      localStorage.setItem("selectedProduct", JSON.stringify(selectedProduct));
-    } else {
-      localStorage.removeItem("selectedProduct");
-    }
+    localStorage.setItem("selectedProduct", JSON.stringify(selectedProduct));
   }, [selectedProduct]);
 
   useEffect(() => {
-    if (products.length > 0) {
-      localStorage.setItem("products", JSON.stringify(products));
-    } else {
-      localStorage.removeItem("products");
-    }
+    localStorage.setItem("products", JSON.stringify(products));
   }, [products]);
 
   return (
