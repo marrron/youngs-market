@@ -39,6 +39,8 @@ const SignUpBox = () => {
 	const [storeName, setStoreName] = useState("");
 	const [isCompanyNumberValid, setIsCompanyNumberValid] = useState(false);
 	const [storeNameError, setStoreNameError] = useState("");
+	const [emailError, setEmailError] = useState("");
+	const [emailSuccessMessage, setEmailSuccessMessage] = useState("");
 
 	const navigate = useNavigate();
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
@@ -79,7 +81,6 @@ const SignUpBox = () => {
 
 		if (activeTab === "BUYER") {
 			const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
-			localStorage.setItem("userEmail", email);
 
 			try {
 				const credentials = await createUserWithEmailAndPassword(
@@ -100,6 +101,12 @@ const SignUpBox = () => {
 				});
 				navigate("/login");
 			} catch (e) {
+				if (e.code === "auth/email-already-in-use") {
+					setEmailError("이미 사용 중인 이메일입니다.");
+					setEmailSuccessMessage("");
+				} else {
+					setErrorMessage("");
+				}
 				console.log(e.code, e.message);
 			}
 		} else {
@@ -124,6 +131,30 @@ const SignUpBox = () => {
 
 	const handleCheck = () => {
 		setChecked(!checked);
+	};
+
+	const checkEmailDuplicate = async () => {
+		const userEmail = `${useremail}@${domain}`;
+		const collectionsToCheck = ["buyers", "sellers"];
+		let isDuplicate = false;
+
+		for (const collectionName of collectionsToCheck) {
+			const querySnapshot = await getDocs(
+				query(collection(db, collectionName), where("email", "==", userEmail))
+			);
+			if (!querySnapshot.empty) {
+				isDuplicate = true;
+				break;
+			}
+		}
+
+		if (isDuplicate) {
+			setEmailError("이미 사용 중인 이메일입니다.");
+			setEmailSuccessMessage("");
+		} else {
+			setEmailError("");
+			setEmailSuccessMessage("멋진 아이디네요 :)");
+		}
 	};
 
 	const handlePasswordValidation = (password) => {
@@ -226,11 +257,15 @@ const SignUpBox = () => {
 									value={domain}
 									onChange={(e) => setDomain(e.target.value)}
 								/>
+								<button type="button" onClick={checkEmailDuplicate}>
+									중복확인
+								</button>
 							</Email>
-							{idValidationMessage && (
-								<p style={{ color: messageColor }}>{idValidationMessage}</p>
+							{emailError && <p style={{ color: "red" }}>{emailError}</p>}
+							{emailSuccessMessage && (
+								<p style={{ color: "#A25956" }}>{emailSuccessMessage}</p>
 							)}
-							<p>비밀번호</p>
+							<p className="password">비밀번호</p>
 							<PasswordContainer>
 								<Input
 									type="password"
@@ -334,11 +369,15 @@ const SignUpBox = () => {
 									value={domain}
 									onChange={(e) => setDomain(e.target.value)}
 								/>
+								<button type="button" onClick={checkEmailDuplicate}>
+									중복확인
+								</button>
 							</Email>
-							{idValidationMessage && (
-								<p style={{ color: messageColor }}>{idValidationMessage}</p>
+							{emailError && <p style={{ color: "red" }}>{emailError}</p>}
+							{emailSuccessMessage && (
+								<p style={{ color: "#A25956" }}>{emailSuccessMessage}</p>
 							)}
-							<p>비밀번호</p>
+							<p className="password">비밀번호</p>
 							<PasswordContainer>
 								<Input
 									type="password"
@@ -506,7 +545,6 @@ const SignUpContainer = styled.div`
 
 const TabContainer = styled.div`
 	display: flex;
-	/* overflow: hidden; */
 	width: 550px;
 	margin: 0 auto;
 `;
@@ -524,7 +562,6 @@ const Tab = styled.div`
 	font-weight: 600;
 	cursor: pointer;
 	background-color: ${(props) => (props.active ? "white" : "#EDD0C2")};
-	/* z-index: ${(props) => (props.active ? "10" : "0")}; */
 	&:last-child {
 		margin-right: 0;
 	}
@@ -546,9 +583,9 @@ const Form = styled.form`
 		font-size: 16px;
 		color: var(--color-darkgrey);
 	}
-	p:nth-child(6) {
+	/* p:nth-child(6) {
 		margin-top: 38px;
-	}
+	} */
 	p:nth-child(8) {
 		margin-top: 4px;
 	}
@@ -636,11 +673,19 @@ const Email = styled.div`
 	margin-bottom: 12px;
 
 	input {
-		width: 220px;
+		width: 160px;
 		height: 54px;
 		border: solid 1px var(--color-orange);
 		border-radius: 5px;
 		padding-left: 16px;
+	}
+	button {
+		width: 100px;
+		height: 54px;
+		background-color: var(--color-maroon);
+		border-radius: 5px;
+		color: white;
+		font-size: 16px;
 	}
 `;
 
