@@ -10,80 +10,74 @@ import {
   ItemDetailStyle,
   ItemInfoStyle,
 } from "../pages/Order";
-import { useAuth } from "../context/AuthContext";
-import { useProduct } from "../context/ProductContext";
-import { useOrder } from "../context/OrderContext";
-import { useCartItems } from "../context/CartContext";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function PaymentCompleted() {
   const navigate = useNavigate();
-  const { token } = useAuth();
-  const { selectedProduct } = useProduct();
-  const { orderkind } = useOrder();
-  const { cartItemsIntersection } = useCartItems();
-  const [orderList, setOrderList] = useState([]);
+  const [user, setUser] = useState(null);
+  const [orderList, setOrderList] = useState({});
   const [paymentMethod, setPaymentMethod] = useState("");
 
-  // direct_order or cart_one_order
-  const shippingFee = selectedProduct.shipping_fee.toLocaleString();
-  const totalPrice = selectedProduct.price * selectedProduct.quantity;
-  const formattedPrice = totalPrice.toLocaleString();
-
-  // cart_order
-  const cartOrderTotalShippingFee = cartItemsIntersection.reduce(
-    (acc, item) => acc + item.shipping_fee,
-    0
-  );
-  const formattedCartOrderTotalShippingFee =
-    cartOrderTotalShippingFee.toLocaleString();
-  const cartTotalItemPrice = cartItemsIntersection.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-  const formattedCartTotalItemPrice = cartTotalItemPrice.toLocaleString();
-
-  // phone number
-  const formattedPhoneNumber =
-    orderList.receiver_phone_number.slice(0, 3) +
-    "-" +
-    orderList.receiver_phone_number.slice(3, 7) +
-    "-" +
-    orderList.receiver_phone_number.slice(7);
-
   // 주문완료 목록
-  const getOrderList = () => {
-    fetch("https://openmarket.weniv.co.kr/order/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data.results[0]);
-        setOrderList(data.results[0]);
-      });
+  const getOrderList = async (currentUser) => {
+    if (!currentUser) {
+      console.log("사용자가 로그인하지 않았습니다.");
+      return;
+    }
+
+    const orderDocRef = doc(db, "orderList", currentUser.uid);
+
+    try {
+      const orderDoc = await getDoc(orderDocRef);
+
+      if (orderDoc.exists()) {
+        const orderData = orderDoc.data();
+        setOrderList(orderData);
+      }
+    } catch (e) {
+      console.log(e);
+    }
   };
 
+  // 사용자 인증 상태 확인
   useEffect(() => {
-    getOrderList();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      getOrderList(currentUser);
+    });
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => unsubscribe();
   }, []);
+
+  console.log(orderList);
 
   // 결제수단
   useEffect(() => {
-    if (orderList.payment_method === "DEPOSIT") {
-      setPaymentMethod("무통장 입금");
-    } else if (orderList.payment_method === "NAVERPAY") {
-      setPaymentMethod("네이버페이 결제");
-    } else if (orderList.payment_method === "CARD") {
-      setPaymentMethod("신용/체크카드 결제");
-    } else if (orderList.payment_method === "KAKAOPAY") {
-      setPaymentMethod("카카오페이 결제");
-    } else if (orderList.payment_method === "PHONE_PAYMENT") {
-      setPaymentMethod("휴대폰 결제");
+    if (orderList.payment_method) {
+      switch (orderList.payment_method) {
+        case "DEPOSIT":
+          setPaymentMethod("무통장 입금");
+          break;
+        case "NAVERPAY":
+          setPaymentMethod("네이버페이 결제");
+          break;
+        case "CARD":
+          setPaymentMethod("신용/체크카드 결제");
+          break;
+        case "KAKAOPAY":
+          setPaymentMethod("카카오페이 결제");
+          break;
+        case "PHONE_PAYMENT":
+          setPaymentMethod("휴대폰 결제");
+          break;
+        default:
+          setPaymentMethod("결제 수단을 불러오는 중...");
+      }
     }
-  }, [orderList.payment_method]);
+  }, [orderList]);
 
   return (
     <>
@@ -106,9 +100,10 @@ export default function PaymentCompleted() {
             <div>
               <span>결제금액</span>
               <strong>
-                {orderList.total_price
-                  ? `${orderList.total_price.toLocaleString()}원`
-                  : "불러오는 중..."}
+                {orderList.total_price != null
+                  ? orderList.total_price.toLocaleString()
+                  : "0"}
+                원
               </strong>
             </div>
           </div>
@@ -140,11 +135,19 @@ export default function PaymentCompleted() {
             </div>
             <div>
               <strong>주소</strong>
-              <p>{orderList.address || "불러오는 중..."}</p>
+              <p>
+                {orderList.address
+                  ? `${orderList.address.street}, ${orderList.address.zip}, ${orderList.address.detail}`
+                  : "불러오는 중..."}
+              </p>
             </div>
             <div>
               <strong>연락처</strong>
-              <p>{formattedPhoneNumber || "불러오는 중..."}</p>
+              <p>
+                {orderList.receiver_phone_number
+                  ? `${orderList.receiver_phone_number.part1}-${orderList.receiver_phone_number.part2}-${orderList.receiver_phone_number.part3}`
+                  : "불러오는 중..."}
+              </p>
             </div>
           </SegmentStyle>
         </PannelAreaStyle>
@@ -159,50 +162,33 @@ export default function PaymentCompleted() {
               <span>배송비</span>
               <span>결제금액</span>
             </InfoTxtPlusStyle>
-            {orderkind === "direct_order" || orderkind === "cart_one_order" ? (
-              <>
-                <OrderItemStyle>
+            {orderList.order_items && orderList.order_items.length > 0 ? (
+              orderList.order_items.map((item) => (
+                <OrderItemStyle key={item.id}>
                   <ItemDetailStyle>
                     <button type="button">
-                      <img src={selectedProduct.image} alt="상품이미지" />
+                      <img src={item.image} alt="상품이미지" />
                     </button>
                     <ItemInfoStyle>
-                      <p>{selectedProduct.store_name}</p>
-                      <p>{selectedProduct.product_name}</p>
-                      <p>수량 : {selectedProduct.quantity}개</p>
+                      <p>{item.store_name}</p>
+                      <p>{item.product_name}</p>
+                      <p>수량 : {item.quantity}개</p>
                     </ItemInfoStyle>
                   </ItemDetailStyle>
                   <span>-</span>
-                  <span>{shippingFee}원</span>
-                  <strong>{formattedPrice}원</strong>
+                  <span>
+                    {item.shipping_fee != null
+                      ? item.shipping_fee.toLocaleString()
+                      : "0"}
+                    원
+                  </span>
+                  <strong>
+                    {item.price != null ? item.price.toLocaleString() : "0"}원
+                  </strong>
                 </OrderItemStyle>
-              </>
+              ))
             ) : (
-              <>
-                {cartItemsIntersection.map((item, index) => {
-                  const itemShippingFee = item.shipping_fee.toLocaleString();
-                  const itemTotalPrice = item.price * item.quantity;
-                  const formattedItemPrice = itemTotalPrice.toLocaleString();
-
-                  return (
-                    <OrderItemStyle key={index}>
-                      <ItemDetailStyle>
-                        <button type="button">
-                          <img src={item.image} alt="상품이미지" />
-                        </button>
-                        <ItemInfoStyle>
-                          <p>{item.store_name}</p>
-                          <p>{item.product_name}</p>
-                          <p>수량 : {item.quantity}개</p>
-                        </ItemInfoStyle>
-                      </ItemDetailStyle>
-                      <span>-</span>
-                      <span>{itemShippingFee}원</span>
-                      <strong>{formattedItemPrice}원</strong>
-                    </OrderItemStyle>
-                  );
-                })}
-              </>
+              <p>주문 상품을 불러오는 중...</p>
             )}
           </SegmentPlusStyle>
         </PannelAreaStyle>
@@ -213,28 +199,29 @@ export default function PaymentCompleted() {
           <SegmentPaymentStyle>
             <div>
               <span>주문상품</span>
-              {orderkind === "direct_order" ||
-              orderkind === "cart_one_order" ? (
-                <strong>{formattedPrice}원</strong>
-              ) : (
-                <strong>{formattedCartTotalItemPrice}원</strong>
-              )}
+              <strong>
+                {orderList.total_price != null
+                  ? orderList.total_price.toLocaleString()
+                  : "0"}
+                원
+              </strong>
             </div>
             <div>
               <span>배송비</span>
-              {orderkind === "direct_order" ||
-              orderkind === "cart_one_order" ? (
-                <strong>{shippingFee}원</strong>
-              ) : (
-                <strong>{formattedCartOrderTotalShippingFee}원</strong>
-              )}
+              <strong>
+                {orderList.shipping_fee != null
+                  ? orderList.shipping_fee.toLocaleString()
+                  : "0"}
+                원
+              </strong>
             </div>
             <div>
               <span>결제 금액</span>
               <strong>
-                {orderList.total_price
-                  ? `${orderList.total_price.toLocaleString()}원`
-                  : "불러오는 중..."}
+                {orderList.total_price != null
+                  ? orderList.total_price.toLocaleString()
+                  : "0"}
+                원
               </strong>
             </div>
           </SegmentPaymentStyle>
