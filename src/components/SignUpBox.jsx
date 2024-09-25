@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
@@ -9,7 +8,14 @@ import iconUpArrow from "../assets/images/icon-up-arrow.svg";
 import iconDownArrow from "../assets/images/icon-down-arrow.svg";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import {
+	collection,
+	doc,
+	getDocs,
+	query,
+	setDoc,
+	where,
+} from "firebase/firestore";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState("BUYER");
@@ -31,6 +37,10 @@ const SignUpBox = () => {
 	const [useremail, setUserEmail] = useState("");
 	const [domain, setDomain] = useState("");
 	const [storeName, setStoreName] = useState("");
+	const [isCompanyNumberValid, setIsCompanyNumberValid] = useState(false);
+	const [storeNameError, setStoreNameError] = useState("");
+	const [emailError, setEmailError] = useState("");
+	const [emailSuccessMessage, setEmailSuccessMessage] = useState("");
 
 	const navigate = useNavigate();
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
@@ -44,8 +54,6 @@ const SignUpBox = () => {
 		const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
 		const company_registration_number = companyNumber;
 		const store_name = storeName;
-
-		localStorage.setItem("userEmail", email);
 
 		const credentials = await createUserWithEmailAndPassword(
 			auth,
@@ -73,7 +81,6 @@ const SignUpBox = () => {
 
 		if (activeTab === "BUYER") {
 			const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
-			localStorage.setItem("userEmail", email);
 
 			try {
 				const credentials = await createUserWithEmailAndPassword(
@@ -94,20 +101,64 @@ const SignUpBox = () => {
 				});
 				navigate("/login");
 			} catch (e) {
+				if (e.code === "auth/email-already-in-use") {
+					setEmailError("이미 사용 중인 이메일입니다.");
+					setEmailSuccessMessage("");
+				} else {
+					setErrorMessage("");
+				}
 				console.log(e.code, e.message);
-			} finally {
 			}
 		} else {
-			handleSellerSubmit();
+			const storeNameExists = await checkStoreNameDuplicate(storeName);
+			if (storeNameExists) {
+				setStoreNameError("중복된 스토어 이름이 존재합니다.");
+			} else if (isCompanyNumberValid) {
+				handleSellerSubmit();
+			} else {
+				setStoreNameError("");
+				setErrorMessage("사업자 등록번호를 먼저 인증해 주세요.");
+			}
 		}
+	};
+
+	const checkStoreNameDuplicate = async (storeName) => {
+		const querySnapshot = await getDocs(
+			query(collection(db, "sellers"), where("store_name", "==", storeName))
+		);
+		return !querySnapshot.empty;
 	};
 
 	const handleCheck = () => {
 		setChecked(!checked);
 	};
 
+	const checkEmailDuplicate = async () => {
+		const userEmail = `${useremail}@${domain}`;
+		const collectionsToCheck = ["buyers", "sellers"];
+		let isDuplicate = false;
+
+		for (const collectionName of collectionsToCheck) {
+			const querySnapshot = await getDocs(
+				query(collection(db, collectionName), where("email", "==", userEmail))
+			);
+			if (!querySnapshot.empty) {
+				isDuplicate = true;
+				break;
+			}
+		}
+
+		if (isDuplicate) {
+			setEmailError("이미 사용 중인 이메일입니다.");
+			setEmailSuccessMessage("");
+		} else {
+			setEmailError("");
+			setEmailSuccessMessage("멋진 아이디네요 :)");
+		}
+	};
+
 	const handlePasswordValidation = (password) => {
-		const minLenth = password.length >= 8;
+		const minLenth = password.length >= 6;
 		const lowerCase = /[a-z]/.test(password);
 		const minNumber = /\d/.test(password);
 
@@ -145,13 +196,32 @@ const SignUpBox = () => {
 		);
 	};
 
-	const handleCompanyNumberCheck = (event) => {
+	const handleCompanyNumberCheck = async (event) => {
 		event.preventDefault();
 		const company_registration_number = companyNumber;
 
-		const AuthData = {
-			company_registration_number,
-		};
+		if (
+			!company_registration_number ||
+			company_registration_number.length !== 10
+		) {
+			setErrorMessage("사업자 등록번호는 10자리여야 합니다.");
+			setIsCompanyNumberValid(false);
+			return;
+		}
+
+		const querySnapshot = await getDocs(
+			query(
+				collection(db, "sellers"),
+				where("company_registration_number", "==", company_registration_number)
+			)
+		);
+		if (!querySnapshot.empty) {
+			setErrorMessage("중복된 사업자 등록번호가 존재합니다.");
+			setIsCompanyNumberValid(false);
+		} else {
+			setErrorMessage("");
+			setIsCompanyNumberValid(true);
+		}
 	};
 
 	return (
@@ -187,11 +257,15 @@ const SignUpBox = () => {
 									value={domain}
 									onChange={(e) => setDomain(e.target.value)}
 								/>
+								<button type="button" onClick={checkEmailDuplicate}>
+									중복확인
+								</button>
 							</Email>
-							{idValidationMessage && (
-								<p style={{ color: messageColor }}>{idValidationMessage}</p>
+							{emailError && <p style={{ color: "red" }}>{emailError}</p>}
+							{emailSuccessMessage && (
+								<p style={{ color: "#A25956" }}>{emailSuccessMessage}</p>
 							)}
-							<p>비밀번호</p>
+							<p className="password">비밀번호</p>
 							<PasswordContainer>
 								<Input
 									type="password"
@@ -295,11 +369,15 @@ const SignUpBox = () => {
 									value={domain}
 									onChange={(e) => setDomain(e.target.value)}
 								/>
+								<button type="button" onClick={checkEmailDuplicate}>
+									중복확인
+								</button>
 							</Email>
-							{idValidationMessage && (
-								<p style={{ color: messageColor }}>{idValidationMessage}</p>
+							{emailError && <p style={{ color: "red" }}>{emailError}</p>}
+							{emailSuccessMessage && (
+								<p style={{ color: "#A25956" }}>{emailSuccessMessage}</p>
 							)}
-							<p>비밀번호</p>
+							<p className="password">비밀번호</p>
 							<PasswordContainer>
 								<Input
 									type="password"
@@ -404,6 +482,7 @@ const SignUpBox = () => {
 								/>
 								<button onClick={handleCompanyNumberCheck}>인증</button>
 							</InpBtnGroup>
+							<p style={{ color: "red" }}>{errorMessage}</p>
 							<p>스토어 이름</p>
 							<Input
 								type="text"
@@ -412,6 +491,9 @@ const SignUpBox = () => {
 								onChange={(e) => setStoreName(e.target.value)}
 								required
 							/>
+							{storeNameError && (
+								<p style={{ color: "red" }}>{storeNameError}</p>
+							)}
 						</Form>
 					)}
 				</FormContainer>
@@ -463,7 +545,6 @@ const SignUpContainer = styled.div`
 
 const TabContainer = styled.div`
 	display: flex;
-	/* overflow: hidden; */
 	width: 550px;
 	margin: 0 auto;
 `;
@@ -481,7 +562,6 @@ const Tab = styled.div`
 	font-weight: 600;
 	cursor: pointer;
 	background-color: ${(props) => (props.active ? "white" : "#EDD0C2")};
-	/* z-index: ${(props) => (props.active ? "10" : "0")}; */
 	&:last-child {
 		margin-right: 0;
 	}
@@ -503,9 +583,9 @@ const Form = styled.form`
 		font-size: 16px;
 		color: var(--color-darkgrey);
 	}
-	p:nth-child(6) {
+	/* p:nth-child(6) {
 		margin-top: 38px;
-	}
+	} */
 	p:nth-child(8) {
 		margin-top: 4px;
 	}
@@ -593,11 +673,19 @@ const Email = styled.div`
 	margin-bottom: 12px;
 
 	input {
-		width: 220px;
+		width: 160px;
 		height: 54px;
 		border: solid 1px var(--color-orange);
 		border-radius: 5px;
 		padding-left: 16px;
+	}
+	button {
+		width: 100px;
+		height: 54px;
+		background-color: var(--color-maroon);
+		border-radius: 5px;
+		color: white;
+		font-size: 16px;
 	}
 `;
 
