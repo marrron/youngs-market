@@ -9,7 +9,15 @@ import iconUpArrow from "../assets/images/icon-up-arrow.svg";
 import iconDownArrow from "../assets/images/icon-down-arrow.svg";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import {
+	collection,
+	doc,
+	getDoc,
+	getDocs,
+	query,
+	setDoc,
+	where,
+} from "firebase/firestore";
 
 const SignUpBox = () => {
 	const [activeTab, setActiveTab] = useState("BUYER");
@@ -31,6 +39,7 @@ const SignUpBox = () => {
 	const [useremail, setUserEmail] = useState("");
 	const [domain, setDomain] = useState("");
 	const [storeName, setStoreName] = useState("");
+	const [isCompanyNumberValid, setIsCompanyNumberValid] = useState(false);
 
 	const navigate = useNavigate();
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
@@ -44,8 +53,6 @@ const SignUpBox = () => {
 		const phone_number = `${firstDigit}${middleDigit}${lastDigit}`;
 		const company_registration_number = companyNumber;
 		const store_name = storeName;
-
-		localStorage.setItem("userEmail", email);
 
 		const credentials = await createUserWithEmailAndPassword(
 			auth,
@@ -95,10 +102,14 @@ const SignUpBox = () => {
 				navigate("/login");
 			} catch (e) {
 				console.log(e.code, e.message);
-			} finally {
 			}
 		} else {
-			handleSellerSubmit();
+			// 판매자일 경우 사업자 등록번호가 유효해야 가입 가능
+			if (isCompanyNumberValid) {
+				handleSellerSubmit();
+			} else {
+				setErrorMessage("사업자 등록번호를 먼저 인증해 주세요."); // 유효하지 않으면 에러 메시지
+			}
 		}
 	};
 
@@ -145,13 +156,32 @@ const SignUpBox = () => {
 		);
 	};
 
-	const handleCompanyNumberCheck = (event) => {
+	const handleCompanyNumberCheck = async (event) => {
 		event.preventDefault();
 		const company_registration_number = companyNumber;
 
-		const AuthData = {
-			company_registration_number,
-		};
+		if (
+			!company_registration_number ||
+			company_registration_number.length !== 10
+		) {
+			setErrorMessage("사업자 등록번호는 10자리여야 합니다.");
+			setIsCompanyNumberValid(false);
+			return;
+		}
+
+		const querySnapshot = await getDocs(
+			query(
+				collection(db, "sellers"),
+				where("company_registration_number", "==", company_registration_number)
+			)
+		);
+		if (!querySnapshot.empty) {
+			setErrorMessage("중복된 사업자 등록번호가 존재합니다.");
+			setIsCompanyNumberValid(false);
+		} else {
+			setErrorMessage("");
+			setIsCompanyNumberValid(true);
+		}
 	};
 
 	return (
@@ -404,6 +434,7 @@ const SignUpBox = () => {
 								/>
 								<button onClick={handleCompanyNumberCheck}>인증</button>
 							</InpBtnGroup>
+							<p style={{ color: "red" }}>{errorMessage}</p>
 							<p>스토어 이름</p>
 							<Input
 								type="text"
