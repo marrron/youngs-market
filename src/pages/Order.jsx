@@ -86,26 +86,31 @@ export default function Order() {
   ]);
 
   // direct_order or cart_one_order
-  const shippingFee = selectedProduct.shipping_fee.toLocaleString();
-  const totalPrice = selectedProduct.price * selectedProduct.quantity;
+  const totalPrice = selectedProduct.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
   const formattedPrice = totalPrice.toLocaleString();
-  const finalTotalPrice =
-    selectedProduct.quantity * selectedProduct.price +
-    selectedProduct.shipping_fee;
+  const shippingFee = selectedProduct.reduce(
+    (acc, item) => acc + item.shipping_fee,
+    0
+  );
+  const formattedShippingFee = shippingFee.toLocaleString();
+  const finalTotalPrice = totalPrice + shippingFee;
   const formattedFinalTotalPrice = finalTotalPrice.toLocaleString();
 
   // cart_order
-  const cartOrderTotalShippingFee = cartItemsIntersection.reduce(
+  const cartOrderTotalShippingFee = selectedProduct.reduce(
     (acc, item) => acc + item.shipping_fee,
     0
   );
   const formattedCartOrderTotalShippingFee =
     cartOrderTotalShippingFee.toLocaleString();
-  const cartTotalItemPrice = cartItemsIntersection.reduce(
+  const cartTotalItemPrice = selectedProduct.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
-  const formattedCartTotalItemPrice = cartTotalItemPrice.toLocaleString();
+  const cartFormattedTotalItemPrice = cartTotalItemPrice.toLocaleString();
   const cartFinalTotalPrice = cartTotalItemPrice + cartOrderTotalShippingFee;
   const cartFormattedFinalTotalPrice = cartFinalTotalPrice.toLocaleString();
 
@@ -161,31 +166,6 @@ export default function Order() {
         selectedProduct.price * selectedProduct.quantity +
         selectedProduct.shipping_fee,
     };
-
-    try {
-      const response = await fetch("https://openmarket.weniv.co.kr/order/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Order creation failed:", errorData);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Order created successfully:", data);
-      navigate("/paymentcompleted");
-      return data;
-    } catch (error) {
-      console.error("Error creating order:", error);
-      throw error;
-    }
   };
 
   // cart_one_order 주문 생성
@@ -204,31 +184,6 @@ export default function Order() {
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
     };
-
-    try {
-      const response = await fetch("https://openmarket.weniv.co.kr/order/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Order creation failed:", errorData);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Order created successfully:", data);
-      navigate("/paymentcompleted");
-      return data;
-    } catch (error) {
-      console.error("Error creating order:", error);
-      throw error;
-    }
   };
 
   // cart_order 주문 생성
@@ -243,31 +198,6 @@ export default function Order() {
       address_message: deliveryMessage,
       payment_method: selectedPaymentMethod,
     };
-
-    try {
-      const response = await fetch("https://openmarket.weniv.co.kr/order/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Order creation failed:", errorData);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Order created successfully:", data);
-      navigate("/paymentcompleted");
-      return data;
-    } catch (error) {
-      console.error("Error creating order:", error);
-      throw error;
-    }
   };
 
   return (
@@ -282,59 +212,33 @@ export default function Order() {
           <span>주문금액</span>
         </InfoTxtStyle>
         <OrderItemsContainerStyle>
-          {orderkind === "direct_order" || orderkind === "cart_one_order" ? (
-            <>
-              <OrderItemStyle>
+          {selectedProduct.map((item, index) => {
+            const itemShippingFee = item.shipping_fee.toLocaleString();
+            const itemTotalPrice = item.price * item.quantity;
+            const formattedItemPrice = itemTotalPrice.toLocaleString();
+
+            return (
+              <OrderItemStyle key={index}>
                 <ItemDetailStyle>
                   <button type="button">
-                    <img src={selectedProduct.image} alt="상품이미지" />
+                    <img src={item.image} alt="상품이미지" />
                   </button>
                   <ItemInfoStyle>
-                    <p>{selectedProduct.store_name}</p>
-                    <p>{selectedProduct.product_name}</p>
-                    <p>수량 : {selectedProduct.quantity}개</p>
+                    <p>{item.store_name}</p>
+                    <p>{item.product_name}</p>
+                    <p>수량 : {item.quantity}개</p>
                   </ItemInfoStyle>
                 </ItemDetailStyle>
                 <span>-</span>
-                <span>{shippingFee}원</span>
-                <strong>{formattedPrice}원</strong>
+                <span>{itemShippingFee}원</span>
+                <strong>{formattedItemPrice}원</strong>
               </OrderItemStyle>
-              <TotalPriceStyle>
-                <p>총 주문금액</p>
-                <strong>{formattedFinalTotalPrice}원</strong>
-              </TotalPriceStyle>
-            </>
-          ) : (
-            <>
-              {cartItemsIntersection.map((item, index) => {
-                const itemShippingFee = item.shipping_fee.toLocaleString();
-                const itemTotalPrice = item.price * item.quantity;
-                const formattedItemPrice = itemTotalPrice.toLocaleString();
-
-                return (
-                  <OrderItemStyle key={index}>
-                    <ItemDetailStyle>
-                      <button type="button">
-                        <img src={item.image} alt="상품이미지" />
-                      </button>
-                      <ItemInfoStyle>
-                        <p>{item.store_name}</p>
-                        <p>{item.product_name}</p>
-                        <p>수량 : {item.quantity}개</p>
-                      </ItemInfoStyle>
-                    </ItemDetailStyle>
-                    <span>-</span>
-                    <span>{itemShippingFee}원</span>
-                    <strong>{formattedItemPrice}원</strong>
-                  </OrderItemStyle>
-                );
-              })}
-              <TotalPriceStyle>
-                <p>총 주문금액</p>
-                <strong>{cartFormattedFinalTotalPrice}원</strong>
-              </TotalPriceStyle>
-            </>
-          )}
+            );
+          })}
+          <TotalPriceStyle>
+            <p>총 주문금액</p>
+            <strong>{formattedFinalTotalPrice}원</strong>
+          </TotalPriceStyle>
         </OrderItemsContainerStyle>
         <DeliveryInfoContainerStyle>
           <h3>배송정보</h3>
@@ -564,7 +468,7 @@ export default function Order() {
                 ) : (
                   <>
                     <div className="price-txt">
-                      <strong>{formattedCartTotalItemPrice}</strong>
+                      <strong>{cartFormattedTotalItemPrice}</strong>
                       <span>원</span>
                     </div>
                   </>
