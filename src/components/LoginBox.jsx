@@ -5,10 +5,12 @@ import { useAuth } from "../context/AuthContext";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { FirebaseError } from "firebase/app";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const LoginBox = () => {
 	const user = auth.currentUser;
-	const { setToken, setLoginType } = useAuth(); // Context에서 setToken 가져오기
+	const { setToken, setLoginType } = useAuth();
 	const [activeTab, setActiveTab] = useState("BUYER");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -29,16 +31,31 @@ const LoginBox = () => {
 		if (email === "" || password === "") return;
 
 		try {
-			await signInWithEmailAndPassword(auth, email, password);
+			const userCredential = await signInWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+			const user = userCredential.user;
+
+			const collectionName = activeTab === "BUYER" ? "buyers" : "sellers";
+			const userDoc = await getDoc(doc(db, collectionName, user.uid));
+
+			if (!userDoc.exists()) {
+				await auth.signOut();
+				setErrorMessage(
+					`${activeTab === "BUYER" ? "구매자" : "판매자"} 계정이 아닙니다.`
+				);
+				return;
+			}
+
 			navigate("/");
-			console.log(user.accessToken);
 			setToken(user.accessToken);
 			setLoginType(activeTab);
 		} catch (e) {
 			if (e instanceof FirebaseError) {
 				setErrorMessage("이메일 또는 비밀번호가 일치하지 않습니다.");
 			}
-		} finally {
 		}
 	};
 
