@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import iconCheckBox from "../assets/images/icon-check-box.svg";
 import iconCheckFillBox from "../assets/images/icon-check-fill-box.svg";
@@ -12,7 +11,6 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import {
 	collection,
 	doc,
-	getDoc,
 	getDocs,
 	query,
 	setDoc,
@@ -40,6 +38,7 @@ const SignUpBox = () => {
 	const [domain, setDomain] = useState("");
 	const [storeName, setStoreName] = useState("");
 	const [isCompanyNumberValid, setIsCompanyNumberValid] = useState(false);
+	const [storeNameError, setStoreNameError] = useState("");
 
 	const navigate = useNavigate();
 	const firstDigits = ["010", "011", "016", "017", "018", "019"];
@@ -104,13 +103,23 @@ const SignUpBox = () => {
 				console.log(e.code, e.message);
 			}
 		} else {
-			// 판매자일 경우 사업자 등록번호가 유효해야 가입 가능
-			if (isCompanyNumberValid) {
+			const storeNameExists = await checkStoreNameDuplicate(storeName);
+			if (storeNameExists) {
+				setStoreNameError("중복된 스토어 이름이 존재합니다.");
+			} else if (isCompanyNumberValid) {
 				handleSellerSubmit();
 			} else {
-				setErrorMessage("사업자 등록번호를 먼저 인증해 주세요."); // 유효하지 않으면 에러 메시지
+				setStoreNameError("");
+				setErrorMessage("사업자 등록번호를 먼저 인증해 주세요.");
 			}
 		}
+	};
+
+	const checkStoreNameDuplicate = async (storeName) => {
+		const querySnapshot = await getDocs(
+			query(collection(db, "sellers"), where("store_name", "==", storeName))
+		);
+		return !querySnapshot.empty;
 	};
 
 	const handleCheck = () => {
@@ -118,7 +127,7 @@ const SignUpBox = () => {
 	};
 
 	const handlePasswordValidation = (password) => {
-		const minLenth = password.length >= 8;
+		const minLenth = password.length >= 6;
 		const lowerCase = /[a-z]/.test(password);
 		const minNumber = /\d/.test(password);
 
@@ -443,6 +452,9 @@ const SignUpBox = () => {
 								onChange={(e) => setStoreName(e.target.value)}
 								required
 							/>
+							{storeNameError && (
+								<p style={{ color: "red" }}>{storeNameError}</p>
+							)}
 						</Form>
 					)}
 				</FormContainer>
