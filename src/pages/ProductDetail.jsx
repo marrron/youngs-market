@@ -76,9 +76,12 @@ export default function ProductDetail() {
 
   // selectedProduct price
   const formattedPrice = (price) => {
-    return price.toLocaleString();
+    return price ? price.toLocaleString() : "0";
   };
-  const totalPrice = selectedProduct.price * quantity;
+
+  const totalPrice = selectedProduct?.price
+    ? selectedProduct.price * quantity
+    : 0;
   const formattedTotalPrice = totalPrice.toLocaleString();
 
   // info-action 버튼
@@ -196,6 +199,7 @@ export default function ProductDetail() {
         stock: selectedProduct.stock,
         product_id: selectedProduct.product_id,
         image: selectedProduct.image,
+        seller_id: selectedProduct.seller_id,
       });
 
       await setDoc(

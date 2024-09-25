@@ -77,16 +77,16 @@ export default function ShoppingCart() {
     };
   }, []);
 
-  console.log(
-    "products",
-    products,
-    "cartItems",
-    cartItems,
-    "cartItemsIntersection",
-    cartItemsIntersection,
-    "deleteCartItemId",
-    deleteCartItemId
-  );
+  // console.log(
+  //   "products",
+  //   products,
+  //   "cartItems",
+  //   cartItems,
+  //   "cartItemsIntersection",
+  //   cartItemsIntersection,
+  //   "deleteCartItemId",
+  //   deleteCartItemId
+  // );
 
   // 장바구니 목록 display
   useEffect(() => {
@@ -150,13 +150,22 @@ export default function ShoppingCart() {
   };
 
   // 개별 체크박스 클릭 이벤트
-  const handleSelect = (cartItemId) => {
+  const handleSelect = (item) => {
     setSelectedCartItemIds((prevSelected) =>
-      prevSelected.includes(cartItemId)
-        ? prevSelected.filter((id) => id !== cartItemId)
-        : [...prevSelected, cartItemId]
+      prevSelected.includes(item.cart_item_id)
+        ? prevSelected.filter((id) => id !== item.cart_item_id)
+        : [...prevSelected, item.cart_item_id]
     );
   };
+
+  // selectedCartItemIds가 변경될 때마다 selectedProduct를 업데이트
+  useEffect(() => {
+    setSelectedProduct(
+      cartItemsIntersection.filter((item) =>
+        selectedCartItemIds.includes(item.cart_item_id)
+      )
+    );
+  }, [selectedCartItemIds, cartItemsIntersection]);
 
   // 모달버튼 클릭
   const openModal = (cartItemId, leftBtnText, rightBtnText, modalTxt) => {
@@ -173,15 +182,15 @@ export default function ShoppingCart() {
     setSelectedCartItemIds([]);
   };
 
-  // console.log(selectedCartItemIds, leftBtnText, rightBtnText);
+  console.log(selectedCartItemIds, leftBtnText, rightBtnText);
+
+  // useEffect(() => {
+  //   console.log("Products:", products);
+  //   console.log("Cart Items:", cartItems);
+  // }, [products, cartItems]);
 
   useEffect(() => {
-    console.log("Products:", products);
-    console.log("Cart Items:", cartItems);
-  }, [products, cartItems]);
-
-  useEffect(() => {
-    console.log("Cart Items Intersection:", cartItemsIntersection);
+    console.log("selectedProduct:", selectedProduct);
   }, [cartItemsIntersection, selectedProduct]);
 
   // 장바구니 개별 삭제하기
@@ -203,9 +212,8 @@ export default function ShoppingCart() {
 
   // 장바구니 전체 선택 후 삭제하기
   const allCartItemsDelete = () => {
-    selectedCartItemIds.forEach(async (el, index) => {
+    selectedCartItemIds.forEach(async (el) => {
       try {
-        console.log("전체삭제할게융", el);
         await deleteDoc(doc(db, "buyers", user.uid, "incart", el));
         closeModal();
       } catch (e) {
@@ -290,7 +298,7 @@ export default function ShoppingCart() {
                           item.cart_item_id
                         )}
                         onChange={() => {
-                          handleSelect(item.cart_item_id);
+                          handleSelect(item);
                         }}
                       />
                       <label htmlFor={id}></label>
@@ -341,7 +349,7 @@ export default function ShoppingCart() {
                       <button
                         onClick={() => {
                           navigate("/order");
-                          setSelectedProduct(item);
+                          setSelectedProduct([item]);
                           setOrderkind("cart_one_order");
                         }}
                         type="button"
@@ -394,7 +402,7 @@ export default function ShoppingCart() {
               <FinalActionsStyle>
                 <button
                   onClick={() => {
-                    navigate("/order");
+                    selectedProduct.length > 0 && navigate("/order");
                     setOrderkind("cart_order");
                   }}
                   type="button"
