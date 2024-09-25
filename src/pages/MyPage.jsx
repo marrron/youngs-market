@@ -25,10 +25,12 @@ export default function MyPage() {
 			<Header></Header>
 			<MyPageContainer>
 				<MyInformation>
-					<div>
-						<img src={UserImg} alt="" />
-						<p>{username}님</p>
-						<p>적립금: 0원 예치금: 0원 쿠폰: 1개</p>
+					<div className="wrapper">
+						<div className="img">
+							<img src={UserImg} alt="" />
+						</div>
+						<div className="username">{username}님</div>
+						<div className="information">적립금: 0원 예치금: 0원 쿠폰: 1개</div>
 					</div>
 				</MyInformation>
 				<MyOrder>
@@ -121,21 +123,22 @@ const MyInformation = styled.div`
 	padding-left: 100px;
 	padding-right: 100px;
 
-	div {
+	.wrapper {
 		display: flex;
 		align-items: center;
 		padding-top: 34px;
 	}
-	img {
-		margin-right: 70px;
+	.img {
+		width: 102px;
 	}
-	p:nth-child(2) {
-		margin-right: 640px;
+	.username {
+		width: 724px;
 		font-size: 20px;
 		font-weight: 700;
 	}
-	p:nth-child(3) {
+	.information {
 		font-size: 18px;
+		width: 254px;
 	}
 `;
 
