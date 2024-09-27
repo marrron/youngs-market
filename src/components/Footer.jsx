@@ -50,7 +50,7 @@ export default function Footer() {
 			<InfoAreaStyle>
 				<ul>
 					<li className="bold">
-						<p>(주)HODU SHOP</p>
+						<p>(주) YOUNGS MARKET</p>
 					</li>
 					<li>
 						<p>제주특별자치도 제주시 동광로 137 제주코딩베이스캠프</p>
