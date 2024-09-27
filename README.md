@@ -3,10 +3,11 @@
 ## 소개 및 개요
 * 프로젝트 기간 : 2024. 07. 08 ~ 2024. 09. 27
 * 배포 URL: [🔗YOUNGS MARKET](https://youngs-market.netlify.app/)
+
 | 유형 | Test ID | PW |
 | ------ | ------ |------ |
-| 판매자 | `youngs_buyer1@youngsmarket.com` |youngs0720
-| 구매자 | `youngs_seller1@youngsmarket.com`|youngs0720
+| 판매자 | `youngs_buyer1@youngsmarket.com` |youngs0720|
+| 구매자 | `youngs_seller1@youngsmarket.com`|youngs0720|
 
 ## 프로젝트 설명
 * YOUNGS MARKET 서비스는 판매자와 구매자를 구별하여 판매자가 상품을 등록, 판매하여 구매자는 구매하는 서비스입니다.
