@@ -41,7 +41,7 @@ export default function Main() {
   }, []);
 
   const handleProductClick = (product) => {
-    setSelectedProduct(product);
+    setSelectedProduct([product]);
     navigate(`/productdetail/${product.product_id}`);
   };
 
