@@ -88,7 +88,7 @@
         </tr>
         <tr>
             <td><img src="https://github.com/user-attachments/assets/269786a1-262d-4b68-ba5d-6daec0708322"
-                  width="430px"  alt=""></td>
+                  width="1080px"  alt=""></td>
             <td>판매회원 로그인<ul>
                     <li>판매 회원 로그인</li>
                 </ul>
