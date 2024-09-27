@@ -35,12 +35,13 @@ export default function ProductDetail() {
   const [showInstruction, setShowInstruction] = useState(false);
 
   // 변수
-  const cartStock = selectedProduct.stock;
-  const cartQuantity = selectedProduct.quantity;
-  const havingItem = inCartItem.some(
-    (e) => e.product_id === selectedProduct.product_id
-  );
-  // console.log(selectedProduct.product_id, havingItem);
+  const cartStock = selectedProduct.length > 0 ? selectedProduct[0].stock : 0;
+  const cartQuantity =
+    selectedProduct.length > 0 ? selectedProduct.quantity : 0;
+  const cartProductId =
+    selectedProduct.length > 0 ? selectedProduct[0].product_id : "";
+  const havingItem = inCartItem.some((e) => e.product_id === cartProductId);
+  console.log(cartStock, cartQuantity, cartProductId);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -79,9 +80,8 @@ export default function ProductDetail() {
     return price ? price.toLocaleString() : "0";
   };
 
-  const totalPrice = selectedProduct?.price
-    ? selectedProduct.price * quantity
-    : 0;
+  const totalPrice =
+    selectedProduct.length > 0 ? selectedProduct[0].price * quantity : 0;
   const formattedTotalPrice = totalPrice.toLocaleString();
 
   // info-action 버튼
@@ -190,16 +190,16 @@ export default function ProductDetail() {
 
     try {
       const newDocRef = await addDoc(shoppingCartDocRef, {
-        store_name: selectedProduct.store_name,
-        product_name: selectedProduct.product_name,
-        price: selectedProduct.price,
-        shipping_method: selectedProduct.shipping_method,
-        shipping_fee: selectedProduct.shipping_fee,
-        quantity: selectedProduct.quantity,
-        stock: selectedProduct.stock,
-        product_id: selectedProduct.product_id,
-        image: selectedProduct.image,
-        seller_id: selectedProduct.seller_id,
+        store_name: selectedProduct[0].store_name,
+        product_name: selectedProduct[0].product_name,
+        price: selectedProduct[0].price,
+        shipping_method: selectedProduct[0].shipping_method,
+        shipping_fee: selectedProduct[0].shipping_fee,
+        quantity: selectedProduct[0].quantity,
+        stock: selectedProduct[0].stock,
+        product_id: cartProductId,
+        image: selectedProduct[0].image,
+        seller_id: selectedProduct[0].seller_id,
       });
 
       await setDoc(
@@ -227,17 +227,16 @@ export default function ProductDetail() {
 
   useEffect(() => {
     const filteredCartItem = cartItemsIntersection.filter(
-      (item) => item.product_id === selectedProduct.product_id
+      (item) => item.product_id === cartProductId
     );
 
-    setSelectedProduct((prevProduct) => ({
-      ...prevProduct,
-      quantity: quantity,
-    }));
+    if (selectedProduct.length > 0) {
+      const updatedProduct = { ...selectedProduct[0], quantity: quantity };
+      setSelectedProduct([updatedProduct]);
+    }
 
     setInCartItem(filteredCartItem);
-    console.log(filteredCartItem, selectedProduct.product_id);
-  }, [cartItemsIntersection, selectedProduct.product_i, quantity]);
+  }, [cartItemsIntersection, cartProductId, quantity]);
 
   // 바로구매 버튼
   const handleBuyNowBtnClick = () => {
@@ -246,6 +245,7 @@ export default function ProductDetail() {
       navigate("/order");
     } else if (!token && loginType === "BUYER") {
       openModal();
+
       setModalTxt(
         <>
           로그인이 필요한 서비스입니다.
@@ -273,13 +273,22 @@ export default function ProductDetail() {
       <Header />
       <MainStyle>
         <div className="product-image">
-          <img src={selectedProduct.image} alt="상품이미지" />
+          <img
+            src={selectedProduct.length > 0 ? selectedProduct[0].image : ""}
+            alt="상품이미지"
+          />
         </div>
         <ProductInfoStyle>
-          <p className="store-name">{selectedProduct.store_name}</p>
-          <p className="product-name">{selectedProduct.product_name}</p>
+          <p className="store-name">
+            {selectedProduct.length > 0 ? selectedProduct[0].store_name : ""}
+          </p>
+          <p className="product-name">
+            {selectedProduct.length > 0 ? selectedProduct[0].product_name : ""}
+          </p>
           <strong className="product-price">
-            {formattedPrice(selectedProduct.price)}
+            {formattedPrice(
+              selectedProduct.length > 0 ? selectedProduct[0].price : 0
+            )}
           </strong>
           <span className="currency-unit">원</span>
           <p className="delivery">
@@ -294,7 +303,7 @@ export default function ProductDetail() {
               <img src={minusBtn} alt="수량감소버튼" />
             </button>
             <button className="product-quantity" type="button">
-              {selectedProduct.stock > 0 ? quantity : 0}
+              {selectedProduct.length > 0 ? quantity : 0}
             </button>
             <button
               className="increase-btn"
@@ -308,20 +317,20 @@ export default function ProductDetail() {
             <span className="total-price-txt">총 상품 금액</span>
             <div className="total-quantity">
               <p>
-                총 수량 <span>{selectedProduct.stock > 0 ? quantity : 0}</span>
+                총 수량 <span>{selectedProduct.length > 0 ? quantity : 0}</span>
                 개
               </p>
               <span className="bar">|</span>
               <div>
                 <strong>
-                  {selectedProduct.stock > 0 ? formattedTotalPrice : 0}
+                  {selectedProduct.length > 0 ? formattedTotalPrice : 0}
                 </strong>
                 <span className="currency-unit maroon">원</span>
               </div>
             </div>
           </TotalPriceStyle>
           <PurchaseActionStyle>
-            {selectedProduct.stock > 0 ? (
+            {selectedProduct.length > 0 && selectedProduct[0].stock > 0 ? (
               <>
                 <button
                   onClick={handleBuyNowBtnClick}

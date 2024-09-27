@@ -160,12 +160,15 @@ export default function ShoppingCart() {
 
   // selectedCartItemIds가 변경될 때마다 selectedProduct를 업데이트
   useEffect(() => {
-    setSelectedProduct(
-      cartItemsIntersection.filter((item) =>
-        selectedCartItemIds.includes(item.cart_item_id)
-      )
-    );
+    if (selectedCartItemIds.length > 0) {
+      setSelectedProduct(
+        cartItemsIntersection.filter((item) =>
+          selectedCartItemIds.includes(item.cart_item_id)
+        )
+      );
+    }
   }, [selectedCartItemIds, cartItemsIntersection]);
+  console.log("selectedCartItemIds", selectedCartItemIds);
 
   // 모달버튼 클릭
   const openModal = (cartItemId, leftBtnText, rightBtnText, modalTxt) => {
@@ -306,7 +309,7 @@ export default function ShoppingCart() {
                     <button
                       type="button"
                       onClick={() => {
-                        goProductDetailPage(item);
+                        goProductDetailPage([item]);
                       }}
                     >
                       <img src={item.image} alt="상품이미지" />
